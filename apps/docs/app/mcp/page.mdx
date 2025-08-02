@@ -1,0 +1,206 @@
+# Simplify with Model Context Protocol (MCP)
+
+> **Goal:** Replace individual agent tools with one MCP server connection.
+> **Estimated time:** 12 minutes (5 min intro + 7 min anti-pattern)
+
+## The Tool Sprawl Problem
+
+**Right now your agent has many individual tools:**
+
+```typescript
+// Current: Many individual tool imports and definitions
+import { getPortfolioTool } from '@/tools/getPortfolio'
+import { placeOrderTool } from '@/tools/placeOrder'
+import { getOrdersTool } from '@/tools/getOrders'
+import { cancelOrderTool } from '@/tools/cancelOrder'
+// ... more tools!
+
+tools: {
+  getPortfolio: getPortfolioTool,
+  placeOrder: placeOrderTool,
+  getOrders: getOrdersTool,
+  cancelOrder: cancelOrderTool,
+  // Getting unwieldy...
+}
+```
+
+## MCP Solution: One Connection, All Tools!
+
+**MCP lets you replace ALL tools with one server connection:**
+
+```typescript
+// After: One MCP client, dynamic tool loading
+import { mcpClient } from '@/lib/mcp'
+
+const tools = await mcpClient.listTools()  // ✨ Magic!
+```
+
+## 1 – Create MCP Client
+
+Create `lib/mcp-client.ts`:
+
+```typescript
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+
+class MCPClient {
+  private client: Client
+  private transport: StdioClientTransport
+
+  constructor() {
+    this.transport = new StdioClientTransport({
+      command: 'node',
+      args: ['../mcp-server/dist/index.js'],  // Our MCP server
+    })
+    this.client = new Client({
+      name: 'demotradepro-agent',
+      version: '1.0.0',
+    }, {
+      capabilities: {
+        tools: {},
+      }
+    })
+  }
+
+  async connect() {
+    await this.client.connect(this.transport)
+  }
+
+  async listTools() {
+    const result = await this.client.listTools()
+    return result.tools
+  }
+
+  async callTool(name: string, arguments_: any) {
+    return await this.client.callTool({ name, arguments: arguments_ })
+  }
+}
+
+export const mcpClient = new MCPClient()
+```
+
+## 2 – Update Chat Route to Use MCP
+
+**Replace your entire `app/api/chat/route.ts` with this:**
+
+```typescript
+import { streamText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { mcpClient } from '@/lib/mcp-client'
+
+export async function POST(request: Request) {
+  const { messages } = await request.json()
+
+  // Connect to MCP server and get ALL tools dynamically
+  await mcpClient.connect()
+  const mcpTools = await mcpClient.listTools()
+
+  // Convert MCP tools to AI SDK format
+  const tools = mcpTools.reduce((acc, tool) => {
+    acc[tool.name] = {
+      description: tool.description,
+      parameters: tool.inputSchema,
+      execute: async (args: any) => {
+        const result = await mcpClient.callTool(tool.name, args)
+        return result.content
+      }
+    }
+    return acc
+  }, {} as any)
+
+  const result = await streamText({
+    model: openai('gpt-4o-mini'),
+    system: 'You are a DemoTradePro assistant using secure MCP tools.',
+    messages,
+    tools,  // 🎆 All tools from MCP server!
+  })
+
+  return result.toDataStreamResponse()
+}
+```
+
+## 3 – Test the MCP Connection
+
+**Start the MCP server:**
+```bash
+cd apps/mcp-server
+pnpm dev  # Starts on port 3004
+```
+
+**Test your simplified agent:**
+1. **Restart agent:** `cd apps/agent && pnpm dev`
+2. **Same prompts work:** "What do I own?", "Buy 50 WAYNE shares"
+3. **But now powered by MCP!** 🎆
+
+✨ **The Magic:** Your agent got SIMPLER, not more complex! All tools now come from the MCP server.
+
+---
+
+## ⚠️ MCP JWT Forwarding Anti-Pattern
+
+**But wait... how does the MCP server authenticate API calls?**
+
+### 😱 The Wrong Way: JWT Forwarding
+
+```typescript
+// apps/mcp-server/src/tools/placeOrder.ts - DON'T DO THIS!
+export async function placeOrder(args: any, context: { userJWT: string }) {
+  // 😱 Storing user JWT in MCP server!
+  const response = await fetch('http://localhost:3001/api/orders', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${context.userJWT}`,  // Forwarding JWT
+    },
+    body: JSON.stringify(args)
+  })
+  return response.json()
+}
+```
+
+**Problems with JWT forwarding:**
+- ❌ **Replay attacks** if MCP server is compromised
+- ❌ **Long-lived tokens** stored in memory
+- ❌ **No audit trail** of who initiated the request
+- ❌ **Token theft** from logs/memory dumps
+
+### ✅ The Right Way: MCP + Token Vault
+
+**The MCP server should use Token Vault too:**
+
+```typescript
+// apps/mcp-server/src/tools/placeOrder.ts - DO THIS!
+import { getVaultToken } from '../lib/auth'
+
+export async function placeOrder(args: any, context: { userId: string }) {
+  // ✅ Get fresh token from Auth0 Token Vault
+  const token = await getVaultToken(['trade:write'], context.userId)
+  
+  const response = await fetch('http://localhost:3001/api/orders', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,  // Fresh 5-minute token!
+    },
+    body: JSON.stringify(args)
+  })
+  return response.json()
+}
+```
+
+**Benefits of MCP + Token Vault:**
+- ✅ **No JWT storage** in MCP server
+- ✅ **Fresh tokens** for each request
+- ✅ **Proper user context** for auditing
+- ✅ **Enterprise security** + tool sharing
+
+---
+
+## 🎆 What You Just Built
+
+- ✅ **Agent simplified** from many tools → one MCP client
+- ✅ **Tools centralized** in reusable MCP server
+- ✅ **Security maintained** with Token Vault
+- ✅ **Scalable architecture** - other agents can use same MCP server!
+
+**Bonus:** ChatGPT, Claude, or Cursor can now use your secure DemoTradePro MCP server! 🤯
+
+🎉 **Workshop complete!** You've built enterprise-grade AI agent security.

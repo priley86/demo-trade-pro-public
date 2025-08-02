@@ -1,0 +1,211 @@
+# Add Authentication to Your Agent
+
+> **Goal:** Add Auth0 authentication to your working AI agent for secure user identification.
+> **Estimated time:** 10 minutes
+
+## What we're building in this step
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant Agent as 🤖 AI Agent<br/>:3003
+    participant Auth0 as 🔐 Auth0 Tenant
+    participant API as 📊 Stock API<br/>:3001
+    
+    User->>Agent: Visit http://localhost:3003
+    Agent->>Agent: Middleware check: No session
+    Agent->>Auth0: Redirect to /auth/login
+    Auth0->>User: Show login form
+    User->>Auth0: Enter credentials
+    Auth0->>Agent: Callback with tokens
+    Agent->>Agent: Store session
+    Agent->>User: Show authenticated chat
+    
+    Note over Agent: Defense in depth:
+    Note over Agent: Middleware + Page + API protection
+    
+    User->>Agent: "What's WAYNE stock price?"
+    Agent->>API: getStockPrice('WAYNE')
+    API->>Agent: $150.25
+    Agent->>User: "WAYNE is $150.25"
+```
+
+**Security layers we're adding:**
+- ✅ **Middleware protection** - Auth0 redirects for all routes
+- ✅ **Server-side page protection** - `withPageAuthRequired()`
+- ✅ **API route protection** - Session verification in chat endpoint
+- 🔄 **Next:** Add portfolio tools with token delegation
+
+## 1 – Test your current agent
+
+Your agent works great with public tools but has no authentication:
+
+```bash
+cd apps/agent
+pnpm dev  # starts on port 3003 (should already be running)
+```
+
+Open `http://localhost:3003` - anyone can use your agent! 🚨
+
+**Security problem:** No user identity means no personalized data access.
+
+---
+
+## 2 – Check what's already set up
+
+Great news! Your agent already has Auth0 infrastructure ready:
+
+- ✅ `@auth0/nextjs-auth0` - Already installed
+- ✅ `lib/auth0.ts` - Auth0 client configuration
+- ✅ `middleware.ts` - Route protection middleware
+- ✅ `.env.local` - Auth0 environment variables
+
+**All the Auth0 setup is done!** We just need to enable it.
+
+---
+
+## 3 – Enable authentication in your page
+
+Your template agent currently bypasses authentication. Let's enable it!
+
+**Update `app/page.tsx` to use real authentication:**
+
+```typescript
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+import ChatClient from './chat-client';
+
+export default withPageAuthRequired(async function Chat() {
+  return <ChatClient />;
+});
+```
+
+**What this does:**
+- **Server-side auth check** - Verifies user is authenticated before page renders
+- **Automatic redirect** - Sends unauthenticated users to Auth0 login
+- **Clean and simple** - Just wrap your existing component!
+
+---
+
+## 4 – Update your API route to use authentication
+
+Your agent's API route needs to verify user identity. **Replace the entire contents of `app/api/chat/route.ts` with:**
+
+```typescript
+import { openai } from '@ai-sdk/openai';
+import { streamText, UIMessage, convertToModelMessages, stepCountIs } from 'ai';
+import { auth0 } from '../../../lib/auth0';
+import { NextResponse } from 'next/server';
+import { agentTools } from './tools';
+
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
+
+export async function POST(req: Request) {
+  // Verify user is authenticated
+  const session = await auth0.getSession();
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { messages }: { messages: UIMessage[] } = await req.json();
+  const user = session.user;
+
+  const result = streamText({
+    model: openai('gpt-4o'),
+    messages: convertToModelMessages(messages),
+    system: `You are a helpful stock trading assistant for DemoTradePro. You provide trading advice, market insights, and help users understand stock market concepts. You are knowledgeable, professional, and always emphasize risk management.
+
+You are currently assisting ${user.name || 'a user'} (${user.email || 'authenticated user'}).
+
+Key guidelines:
+- Always remind users that trading involves risk
+- Provide educational information about stocks and markets
+- Help with basic trading concepts and strategies
+- Be conversational and helpful
+- Never provide specific financial advice or guarantees
+- You can reference the user by their name when appropriate
+
+You now have access to real-time stock market data through your tools. Use them when users ask about stock prices, company information, or want to search for stocks.`,
+    tools: agentTools,
+    stopWhen: stepCountIs(15),
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+**Key changes:**
+- **Authentication check** - Verifies user session before processing
+- **Personalized system prompt** - AI knows the user's name and email
+- **Tools included** - Your public stock tools still work!
+- **401 Unauthorized** - Clear error response for invalid sessions
+
+---
+
+## 5 – Test your authenticated agent
+
+Restart your development server:
+
+```bash
+pnpm dev
+```
+
+Visit `http://localhost:3003`:
+
+1. **Automatic redirect** to Auth0 login
+2. **After login** - redirected back to chat
+3. **Test stock tools:** "What's the current price of WAYNE stock?"
+4. **Personalized response** - AI should greet you by name!
+
+---
+
+## ✅ Success! Multi-Layer Security
+
+**Your agent now has defense-in-depth security:**
+- ✅ **Middleware protection** - Redirects to Auth0 if not authenticated
+- ✅ **Page-level protection** - Server-side auth verification
+- ✅ **API route protection** - Chat endpoint requires valid session
+- ✅ **Personalized AI** - Agent knows who you are
+- ✅ **Tools still work** - Public stock data access maintained
+
+**What you've built:**
+- ✅ Secure AI agent with user identity
+- ✅ Auth0 integration with proper token handling
+- ✅ Public stock tools working with authentication
+- 🔄 **Next:** Add portfolio tools with token delegation
+
+**Security problem solved:** Your agent now knows who's using it and can provide personalized responses while maintaining access to public stock data.
+- ✅ **Complete security** - No unauthorized access to any part of the application
+- ✅ **Sign out works** - Redirects to Auth0 logout and clears session
+
+---
+
+## 🛠️ Troubleshooting
+
+**Login redirect issues:** Check that your Auth0 application has `http://localhost:3003/auth/callback` in the allowed callback URLs (note: `/auth/callback`, not `/api/auth/callback`).
+
+**Environment variable errors:** Ensure you ran `auth0-agent/init.sh` and have all Auth0 environment variables set in `.env.local`.
+
+---
+
+## 📚 Key Auth0 v4 SDK Facts
+
+- **No `handleAuth()` function** - This was removed in v4
+- **No API route files needed** - Middleware provides `/auth/login`, `/auth/logout`, `/auth/callback` automatically  
+- **Middleware is required** - `auth0.middleware()` handles all authentication
+- **Official docs:** https://auth0.com/docs/quickstart/webapp/nextjs/01-login
+
+---
+
+## 🎯 What's Next?
+
+**You now have:** Fully secured AI agent with complete authentication!
+
+**Security Achievement:**
+- 🔒 **Defense in depth** - Middleware + page + API protection
+- 👤 **User identity** - AI knows who you are and personalizes responses
+- 🚫 **Zero unauthorized access** - Every entry point requires Auth0 authentication
+
+**But there's a problem:** How does your agent access *your* portfolio data from the API?
+
+**Coming up:** We'll add tools that can fetch your personal data... and discover why this creates a dangerous security temptation! 🚨

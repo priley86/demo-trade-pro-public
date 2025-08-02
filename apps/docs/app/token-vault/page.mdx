@@ -1,0 +1,181 @@
+# Secure On-Behalf-Of with Auth0 Token Vault
+
+> **Goal:** Replace unsafe root-key/JWT-forwarding patterns with Auth0's enterprise Token Vault.
+> **Estimated time:** 20 minutes
+
+## Why Auth0 Token Vault?
+
+* ❌ **Root keys** (M2M credentials) = unlimited power, single point of failure
+* ❌ **JWT forwarding** = vulnerable to replay attacks if leaked  
+* ✅ **Token Vault** = enterprise-grade security with zero custom code
+
+**The Magic:** Agent gets its own Auth0 tenant with Token Vault enabled. No secrets in your code!
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Agent Tenant
+        AT[Auth0 Agent Tenant]
+        TV[Token Vault]
+    end
+    subgraph User
+        U[User Chat]
+    end
+    subgraph Agent App
+        A[AI Agent]
+    end
+    subgraph DemoTradePro
+        API[DemoTradePro API]
+    end
+    
+    U --> A: "Sell 100 STARK"
+    A --> AT: Authenticate user
+    AT --> TV: Request scoped token
+    TV --> A: Short-lived token (5min)
+    A --> API: POST /orders + token
+    API --> A: Order confirmed
+    A --> U: "Trade executed!"
+```
+
+## 1 – Create Agent Auth0 Tenant
+
+**Get a GenAI-enabled tenant** (this auto-enables Token Vault):
+
+1. **Visit:** https://auth0.com/ai
+2. **Create new tenant** for your agent (separate from DemoTradePro)
+3. **Note your agent tenant domain** (e.g., `my-agent.us.auth0.com`)
+
+✨ **Magic:** This automatically enables Token Vault and other GenAI features!
+
+## 2 – Configure OpenID Connection
+
+In your **agent tenant**, create a connection to DemoTradePro:
+
+```bash
+# In your agent tenant dashboard:
+# Applications → APIs → Create API
+# - Name: "DemoTradePro Connection"
+# - Identifier: "https://api.demotradepro.local"  (match your main API)
+# - Scopes: trade:read, trade:write, portfolio:read
+```
+
+## 3 – Agent Integration
+
+**Update your agent** to use Token Vault instead of direct credentials:
+
+```typescript
+// apps/agent/lib/auth.ts
+import { auth0 } from '@auth0/nextjs-auth0'
+
+export async function getVaultToken(scopes: string[]) {
+  // Auth0's Token Vault automatically handles the OBO flow
+  const tokenResponse = await auth0.getAccessToken({
+    authorizationParameters: {
+      audience: 'https://api.demotradepro.local',
+      scope: scopes.join(' ')
+    }
+  })
+  
+  return tokenResponse?.token  // Short-lived, scoped token!
+}
+```
+
+## 4 – Update Agent Tools to Use Vault
+
+**Replace dangerous M2M credentials** with secure vault tokens:
+
+```typescript
+// apps/agent/tools/placeOrder.ts
+import { tool } from 'ai'
+import { z } from 'zod'
+import { getVaultToken } from '@/lib/auth'
+
+export const placeOrderTool = tool({
+  description: 'Place a stock trading order',
+  parameters: z.object({
+    symbol: z.string(),
+    side: z.enum(['BUY', 'SELL']),
+    quantity: z.number()
+  }),
+  execute: async ({ symbol, side, quantity }) => {
+    // Get scoped token from Auth0 Token Vault (5-minute expiry)
+    const token = await getVaultToken(['trade:write'])
+    
+    const response = await fetch('http://localhost:3001/api/orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ symbol, side, quantity })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Trade failed')
+    }
+    
+    return await response.json()
+  }
+})
+```
+
+## 5 – Test Secure Trading
+
+**Update your chat API** to use the secure tool:
+
+```typescript
+// apps/agent/app/api/chat/route.ts
+import { streamText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { getPortfolioTool } from '@/tools/getPortfolio'
+import { placeOrderTool } from '@/tools/placeOrder'  // Now secure!
+
+export async function POST(request: Request) {
+  const { messages } = await request.json()
+
+  const result = await streamText({
+    model: openai('gpt-4o-mini'),
+    system: 'You are a secure DemoTradePro trading assistant powered by Auth0 Token Vault.',
+    messages,
+    tools: {
+      getPortfolio: getPortfolioTool,
+      placeOrder: placeOrderTool  // ✅ Secure with 5-minute tokens!
+    },
+  })
+
+  return result.toDataStreamResponse()
+}
+```
+
+**Test the secure flow:**
+
+1. **Start agent:** `cd apps/agent && pnpm dev`
+2. **Try secure trading:** 
+   - "What do I own?"
+   - "Buy 50 shares of WAYNE"
+   - "Sell 25 STARK shares"
+
+🎆 **Success!** Your agent now uses enterprise-grade Token Vault security!
+
+---
+
+## ✨ What Just Happened?
+
+- ✅ **No secrets in agent code** – all handled by Auth0
+- ✅ **5-minute token expiry** – minimal attack window
+- ✅ **Scoped permissions** – only `trade:write` when needed
+- ✅ **Enterprise-grade** – production-ready security
+
+**Next up:** MCP protocol for sharing these secure capabilities!
+
+## 3 – Validate
+
+```bash
+curl -X POST localhost:3002/api/chat -H "Content-Type: application/json" \
+  -d '{"prompt":"Buy 5 WAYNE"}'
+```
+
+You should see an order executed **only** for the authenticated user.
+
+> **Tip:** Logs show each access token expires after 5 minutes—replay attacks are basically useless.

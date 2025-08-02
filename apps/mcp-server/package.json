@@ -1,0 +1,23 @@
+{
+  "name": "mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "api/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "vercel dev --listen 3004"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.8.2",
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@workspace/agent-utils": "workspace:*",
+    "fetch-to-node": "^2.1.0",
+    "hono": "^4.8.12",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}
