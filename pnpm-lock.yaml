@@ -32,9 +32,6 @@ importers:
       '@ai-sdk/react':
         specifier: ^2.0.0
         version: 2.0.0(react@19.1.0)(zod@3.25.76)
-      '@auth0/nextjs-auth0':
-        specifier: ^4.9.0
-        version: 4.9.0(next@15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@workspace/agent-utils':
         specifier: workspace:*
         version: link:../../packages/agent-utils
@@ -5891,17 +5888,6 @@ snapshots:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       swr: 2.3.4(react@19.0.0)
-
-  '@auth0/nextjs-auth0@4.9.0(next@15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@edge-runtime/cookies': 5.0.2
-      '@panva/hkdf': 1.2.1
-      jose: 6.0.12
-      next: 15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      oauth4webapi: 3.6.1
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-      swr: 2.3.4(react@19.1.0)
 
   '@babel/runtime-corejs3@7.26.9':
     dependencies:
