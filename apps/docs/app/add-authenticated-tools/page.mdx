@@ -8,16 +8,19 @@
 ```mermaid
 sequenceDiagram
     participant User as 👤 User (Alice)
-    participant Agent as 🤖 AI Agent<br/>:3003
-    participant Auth0 as 🔐 Auth0 Tenant<br/>(Token Vault)
+    participant Agent as 🤖 Agent Tenant<br/>:3003
+    participant Vault as 🔐 Auth0 Token Vault<br/>(Agent Tenant)
+    participant Root as 🏛️ Root Tenant<br/>(DemoTradePro)
     participant API as 📊 Stock API<br/>:3001
     participant DB as 🗄️ Database
     
     User->>Agent: "Show me my portfolio"
-    Agent->>Agent: Extract user from session
-    Agent->>Auth0: getDelegatedAccessToken()<br/>(OIDC connection)
-    Auth0->>Auth0: Exchange user token<br/>for API access token
-    Auth0->>Agent: Scoped access token<br/>(5min TTL)
+    Agent->>Agent: Extract user session<br/>+ refresh token
+    Agent->>Vault: getAccessTokenForConnection()<br/>(exchange refresh token)
+    Vault->>Root: Token exchange request<br/>(using OIDC connection)
+    Root->>Root: Validate + generate<br/>API access token
+    Root->>Vault: Scoped access token<br/>(auto-refresh enabled)
+    Vault->>Agent: Fresh API token<br/>(cached + auto-renewed)
     Agent->>API: getPortfolio()<br/>with delegated token
     API->>API: Validate JWT + extract userId
     API->>DB: SELECT * FROM portfolio<br/>WHERE userId = 'alice'
@@ -25,14 +28,15 @@ sequenceDiagram
     API->>Agent: Portfolio response
     Agent->>User: "You own 100 WAYNE shares..."
     
-    Note over Auth0: Token Vault = secure<br/>token exchange (OBO)
-    Note over API: User isolation via<br/>JWT claims
+    Note over Vault: Token Vault = automatic<br/>refresh + secure storage
+    Note over Root: Root tenant protects<br/>API with real user context
 ```
 
-**Secure token flow we're adding:**
-- ✅ **Token delegation** - Exchange user tokens for API tokens
-- ✅ **User isolation** - Portfolio data scoped to authenticated user
-- ✅ **Short-lived tokens** - 5-minute TTL (not root keys)
+**Secure Auth0 Token Vault flow we're adding:**
+- ✅ **Token Vault** - Secure token storage + automatic refresh ([Auth0 docs](https://auth0.com/docs/secure/tokens/token-vault/call-apis-with-token-vault))
+- ✅ **Root tenant protection** - API secured by DemoTradePro's main tenant
+- ✅ **Automatic refresh** - Auth0 handles token expiry transparently
+- ✅ **User context** - Real user identity flows through to API
 - ✅ **Portfolio tools** - `getPortfolio`, `getOrderHistory`, `createOrder`
 
 ## 1 – Test your current agent
@@ -50,24 +54,23 @@ Open `http://localhost:3003` and ask: *"Show me my portfolio"*
 
 ---
 
-## 2 – Add token delegation helper
+## 2 – Add Auth0 Token Vault helper
 
-**Key concept:** Your agent needs to exchange the user's Auth0 token for an API access token.
+**Key concept:** Your agent uses Auth0's Token Vault to securely access API tokens with automatic refresh.
 
 Add this function to your existing `lib/auth0.ts`:
 
 ```typescript
 /**
- * Helper to get delegated access token for the API
- * Uses the OIDC connection to get a token for the stock trading API
+ * Helper to get access token from Auth0 Token Vault
+ * Exchanges user's refresh token for API access token via OIDC connection
+ * Auth0 automatically handles token refresh and caching
  */
 export async function getAccessTokenForConnection({ connection }: { connection: string }): Promise<string | undefined> {
   try {
-
     if (!auth0.getSession()) {
       return undefined;
     }
-
 
     const token = await auth0.getAccessTokenForConnection({ connection });
 
@@ -76,16 +79,19 @@ export async function getAccessTokenForConnection({ connection }: { connection: 
     }
 
     return token.token;
-
   } catch (error) {
-
     console.error('Failed to get stored access token:', error);
     throw error;
   }
 }
 ```
 
-**Replace `<CONNECTION_NAME>`** with your OIDC connection identifier.
+**What this does:**
+- **Token Vault access** - Retrieves cached/fresh tokens from Auth0's secure vault
+- **Automatic refresh** - Auth0 handles token expiry without user intervention
+- **OIDC delegation** - Uses enterprise connection to root DemoTradePro tenant
+- **Secure storage** - No tokens stored in your app, only in Auth0's vault
+- **Error handling** - Graceful fallback if vault access unavailable
 
 ---
 

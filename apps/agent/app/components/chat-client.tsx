@@ -3,9 +3,10 @@
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
 import { Send, Bot, User, TrendingUp, LogOut } from 'lucide-react';
+import type { User as Auth0User } from '@auth0/nextjs-auth0/types';
 
 interface ChatClientProps {
-  user: any;
+  user?: Auth0User;
 }
 
 export default function ChatClient({ user }: ChatClientProps) {

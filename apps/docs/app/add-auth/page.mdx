@@ -51,32 +51,158 @@ Open `http://localhost:3003` - anyone can use your agent! 🚨
 
 ---
 
-## 2 – Check what's already set up
+## 2 – Create your Auth0 tenant
 
-Great news! Your agent already has Auth0 infrastructure ready:
+First, create your own Auth0 tenant for authentication:
 
-- ✅ `@auth0/nextjs-auth0` - Already installed
-- ✅ `lib/auth0.ts` - Auth0 client configuration
-- ✅ `middleware.ts` - Route protection middleware
-- ✅ `.env.local` - Auth0 environment variables
+Go to **https://auth0.ai** and create a new Auth0 tenant:
 
-**All the Auth0 setup is done!** We just need to enable it.
+1. **Click "Sign Up"** if you don't have an Auth0 account
+2. **Create a new tenant** - choose a unique tenant name (e.g., `yourname-workshop`)
+3. **Select region** - Choose the region closest to you
+4. **Note your tenant domain** - You'll need this (e.g., `yourname-workshop.us.auth0.com`)
+
+## 3 – Set up Auth0 CLI and initialize your tenant
+
+Configure the Auth0 CLI and run the initialization script:
+
+```bash
+# Login to Auth0 CLI
+auth0 login
+
+# Select your newly created tenant when prompted
+# Navigate to agent directory and run init script
+cd auth0-agent
+./init.sh
+```
+
+**What the init script does:**
+- ✅ **Creates Management Client** - Auth0 client for Terraform
+- ✅ **Runs Terraform** - Sets up API resource and agent application  
+- ✅ **Generates Environment** - Creates `apps/agent/.env.local` file
+- ✅ **Ready for authentication** - Prepared for the next steps
+
+## 4 – Set up enterprise connection (for sign-in)
+
+**Important:** You need to connect your tenant to the hosted DemoTradePro platform to enable sign-in.
+
+**Option A: Use the developer tool (Recommended)**
+
+Visit the hosted Stock Web App at `$STOCK_WEB_APP/developer` and:
+
+1. **Enter your tenant domain** (e.g., `yourname-workshop.us.auth0.com`)
+2. **Click "Generate OIDC Configuration"**
+3. **Copy the generated `terraform.tfvars` content** 
+4. **Add it to your `auth0-agent/terraform/terraform.tfvars` file**
+5. **Run the connection script:**
+
+```bash
+cd auth0-agent
+./add-oidc-connection.sh
+```
+
+**Option B: Manual configuration**
+
+Alternatively, configure the enterprise connection manually in your Auth0 Dashboard:
+
+1. Go to **Authentication > Enterprise > OpenID Connect**
+2. Create a new OIDC connection pointing to the hosted DemoTradePro tenant
+3. Configure the callback URLs and scopes
+
+## 5 – Install NextJS Auth0 SDK
+
+**Note:** The Auth0 SDK might already be installed from the init script. If so, you can skip this step.
+
+Install or verify the Auth0 NextJS SDK (version 4.9.0 or higher):
+
+```bash
+cd apps/agent
+pnpm add @auth0/nextjs-auth0@^4.9.0
+```
 
 ---
 
-## 3 – Enable authentication in your page
+## 6 – Set up Auth0 client configuration
+
+Create the Auth0 client configuration. Copy the basic setup without the token helper (we'll add that later):
+
+**Create `lib/auth0.ts`:**
+
+```typescript
+import { Auth0Client } from "@auth0/nextjs-auth0/server";
+
+// Server-side Auth0 client instance
+export const auth0 = new Auth0Client({
+  authorizationParameters: {
+    audience: process.env.AUTH0_AUDIENCE,
+    scope: process.env.API_DEFAULT_SCOPES
+  }
+});
+```
+
+**What this does:**
+- **Server-side client** - Handles authentication on the backend
+- **Audience configuration** - Points to your stock trading API
+- **Scope configuration** - Defines what permissions to request
+- **Environment variables** - Keeps secrets secure
+
+---
+
+## 7 – Set up authentication middleware
+
+Create middleware to protect all routes and adds the Auth0 route handlers such as /auth/login and /auth/logout.
+
+**Create `middleware.ts` in the root of your agent app:**
+
+```typescript
+import type { NextRequest } from "next/server";
+import { auth0 } from "./lib/auth0";
+
+export async function middleware(request: NextRequest) {
+  // Let Auth0 middleware handle authentication
+  return await auth0.middleware(request);
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Protect ALL routes including root "/" - redirect to Auth0 login if not authenticated
+     * Exclude only:
+     * - _next/static (static files)
+     * - _next/image (image optimization files) 
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"
+  ]
+};
+```
+
+**What this does:**
+- **Route protection** - Automatically protects all pages in your app
+- **Static file exceptions** - Allows Next.js assets to load without auth
+- **Defense in depth** - Works alongside page and API route protection
+
+---
+
+## 8 – Enable authentication in your page
 
 Your template agent currently bypasses authentication. Let's enable it!
 
 **Update `app/page.tsx` to use real authentication:**
 
 ```typescript
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
-import ChatClient from './chat-client';
+import { auth0 } from "../lib/auth0";
+import ChatClient from './components/chat-client';
 
-export default withPageAuthRequired(async function Chat() {
-  return <ChatClient />;
-});
+export default auth0.withPageAuthRequired(
+  async function Chat() {
+    const session = await auth0.getSession();
+    const user = session?.user;
+
+    return <ChatClient user={user} />;
+  },
+  { returnTo: "/" }
+);
 ```
 
 **What this does:**
@@ -86,7 +212,7 @@ export default withPageAuthRequired(async function Chat() {
 
 ---
 
-## 4 – Update your API route to use authentication
+## 9 – Update your API route to use authentication
 
 Your agent's API route needs to verify user identity. **Replace the entire contents of `app/api/chat/route.ts` with:**
 

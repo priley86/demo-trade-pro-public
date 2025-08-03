@@ -1,5 +1,5 @@
-import ChatClient from './chat-client';
+import ChatClient from './components/chat-client';
 
 export default async function Chat() {
-  return <ChatClient user={null} />;
+  return <ChatClient />;
 }

@@ -30,87 +30,42 @@ graph TB
 ```
 
 **By the end of this step:**
-- ✅ Auth0 tenant configured with API + Web client
-- ✅ DemoTradePro platform running (Web + API + Database)
-- ✅ Template AI agent running (no tools yet)
+- ✅ Template AI agent running (no authentication yet)
+- ✅ Access to hosted DemoTradePro platform for later tutorials
+- ✅ Ready to add tools and authentication
 - 🔄 **Next:** Add public stock tools to your agent
 
 ## Prerequisites
 
-* `nvm` with Node **LTS** (run `nvm use --lts`)
+* `nvm` with Node **LTS** (run `nvm use lts` or `nvm use --lts`)
 * **PNPM** package manager
-* Docker Desktop (only if you plan to run the API locally)
-* Auth0 CLI (`brew install auth0/tap/auth0`)
+* **OpenAI API key** (get one at https://platform.openai.com/)
 
-### Hosted quick-start
+### Using hosted DemoTradePro platform
 
-Organizers run a **shared Stock API & Web** at `SHARED_API_URL` / `SHARED_WEB_URL` (provided day-of). If those environment variables are present you can **skip steps 2–4** and go straight to building the agent:
+**Great news!** We provide hosted Stock API and Trader Web App so you can focus on building your agent:
 
-```bash
-export NEXT_PUBLIC_API_BASE=$SHARED_API_URL   # e.g. https://api.stocktrade.ai
-export AUTH0_BASE_URL=$SHARED_WEB_URL         # e.g. https://web.stocktrade.ai
-```
-
-Then run the docs commands as usual; the agent will call the hosted API.
+- 🌐 **Stock Web App**: Available at hosted URL (provided during workshop)
+- 📊 **Stock API**: Available at hosted URL (provides real market data)
+- 🔐 **Authentication**: You'll set this up in a later tutorial
 
 ---
 
-## 1 – Clone the repo
+## 1 – Clone the workshop repository
 
 ```bash
 git clone https://github.com/ciamshrek/demo-trade-pro.git
 cd demo-trade-pro
+nvm use --lts     # critical requirement
+pnpm install      # install dependencies
 ```
 
-## 2 – Install deps & spin up database
+## 2 – Start your template agent
 
 ```bash
-nvm use --lts     # critical per workshop requirement
-pnpm install      # monorepo deps
-docker-compose up -d  # starts postgres
-```
-
-## 3 – Bootstrap Auth0
-
-```bash
-cd auth0
-./scripts/generate-auth-management-client.sh   # writes terraform.tfvars
-terraform -chdir=terraform apply              # creates API + Web client
-./scripts/generate-web-env.sh                 # apps/web/.env.local
-./scripts/generate-api-env.sh                 # apps/api-server/.env
-```
-
-## 4 – Run baseline apps
-
-```bash
-# Terminal 1: API server on port 3001
-cd apps/api-server && pnpm dev
-
-# Terminal 2: Web app on port 3000
-cd apps/web && pnpm dev
-```
-
-## 5 – Validate the DemoTradePro platform
-
-1. **Open** `http://localhost:3000`
-2. **Click "Sign In"** - you'll be redirected to Auth0
-3. **Create an account** or sign in
-4. **View your portfolio** - should show sample stocks (WAYNE, STARK, etc.)
-5. **Test trading** - place a small order to verify the API works
-
-## 6 – Set up your template agent
-
-Bootstrap your agent tenant and start the template:
-
-```bash
-# Terminal 3: Agent setup
-cd auth0-agent
-./init.sh                    # creates Auth0 agent tenant + generates .env.local
-
-# Terminal 4: Start template agent
 cd apps/agent
 echo "OPENAI_API_KEY=your_key_here" >> .env.local  # Add your OpenAI key
-pnpm dev                     # starts on port 3003
+pnpm dev  # starts on port 3003
 ```
 
 **Test your template agent:**
@@ -118,9 +73,9 @@ pnpm dev                     # starts on port 3003
 2. **Ask:** "What's the current price of WAYNE stock?"
 3. **Expected response:** *"I don't have access to real-time stock data..."* 🤷‍♂️
 
-**Perfect!** Your template agent provides trading advice but has no tools yet.
+**Perfect!** Your agent provides trading advice but has no tools or authentication yet.
 
-🎉 **Success!** You now have both DemoTradePro platform AND template agent running.
+🎉 **Success!** Your template agent is running, ready for tools and authentication!
 
 ---
 

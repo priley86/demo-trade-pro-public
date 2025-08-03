@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const user = session.user;
 
   const result = streamText({
-    model: openai('gpt-4o'),
+    model: openai('gpt-4.1-mini'),
     messages: convertToModelMessages(messages),
     system: `You are a helpful stock trading assistant for DemoTradePro. You provide trading advice, market insights, and help users understand stock market concepts. You are knowledgeable, professional, and always emphasize risk management.
 

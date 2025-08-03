@@ -1,5 +1,5 @@
 import { auth0 } from "../lib/auth0";
-import ChatClient from './chat-client';
+import ChatClient from './components/chat-client';
 
 export default auth0.withPageAuthRequired(
   async function Chat() {
