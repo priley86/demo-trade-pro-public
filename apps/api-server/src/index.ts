@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import stockRoutes from '../src/routes/stocks.js'
-import orderRoutes from '../src/routes/orders.js'
-import portfolioRoutes from '../src/routes/portfolio.js'
+import stockRoutes from './routes/stocks.js'
+import orderRoutes from './routes/orders.js'
+import portfolioRoutes from './routes/portfolio.js'
 
 const app = new Hono().basePath('/api')
 
@@ -34,4 +34,4 @@ app.route('/orders', orderRoutes)
 // Portfolio routes
 app.route('/portfolio', portfolioRoutes)
 
-export default app;
+export default app
