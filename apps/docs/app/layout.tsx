@@ -16,7 +16,7 @@ export default function RootLayout({
         <div className="flex min-h-screen">
           {/* Sidebar */}
           <nav className="w-64 bg-gray-50 border-r border-gray-200 p-6">
-            <h1 className="text-lg font-bold mb-6">Stock Agent Workshop</h1>
+            <h1 className="text-lg font-bold mb-6">Auth0 AI Workshop</h1>
             <ul className="space-y-2">
               <li><a href="/" className="block py-2 px-3 rounded hover:bg-gray-100">Welcome</a></li>
               <li><a href="/setup" className="block py-2 px-3 rounded hover:bg-gray-100">1. Local Setup</a></li>

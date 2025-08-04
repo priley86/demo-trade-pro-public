@@ -1,7 +1,7 @@
 # Add Public Tools to Your Agent
 
-> **Goal:** Add stock price fetching tools so your agent can access public DemoTradePro market data.
-> **Estimated time:** 12 minutes
+AI Agents can't just interact with the outside world on their own, instead we need to provide them integrations. Our agent today uses [Vercel AI SDK](https://ai-sdk.dev) 
+in order to access stock api, we'll provide it basic tools to call. 
 
 ## What we're building in this step
 
@@ -28,52 +28,104 @@ graph TB
     class Tools tools
 ```
 
-**Tools we're adding:**
-- ✅ `getStockPrice` - Get current stock price
-- ✅ `searchStocks` - Find companies by name/symbol
-- ✅ `getStockInfo` - Get company details
-- 🔄 **Next:** Add authentication for user identity
+## 1 – Add tools
 
-## 1 – Test your template agent
+Your agent already has an empty tools configuration at `app/api/chat/tools.ts`. These are then imported into `app/api/chat/route.ts`. Lets start by building a very basic tool
 
-Your template agent provides trading advice but can't fetch real stock data:
+In `app/api/chat/` create a new file `fetch-stock-price.ts`. 
 
-```bash
-cd apps/agent
-pnpm dev  # starts on port 3003 (should already be running)
+```typescript
+import z from "zod";
+import { tool } from "ai";
+
+export const getStockPrice = tool({
+  description: 'Get current stock price by symbol for Demo Trade Pro Platform',
+  inputSchema:  z.object({
+      symbol: z.string()
+        .min(1, 'Stock symbol is required')
+        .max(10, 'Stock symbol must be 10 characters or less')
+        .regex(/^[A-Z]+$/, 'Stock symbol must be uppercase letters only')
+        .describe('Stock symbol (e.g., WAYNE, STARK)')
+  }),
+  async execute({ symbol }) { 
+    const response = await fetch("https://workshop-stock-api.auth101.dev/api/stocks/" + symbol);
+    if (response.ok) {
+      return await response.json();
+    }
+  }
+})
 ```
 
-Open `http://localhost:3003` and ask: *"What's the current price of WAYNE stock?"*
+Then you can import this tool in the tools, allowing the ai-agent to use it, update the `app/api/chat/tools.ts` to now expose the `getStockPrice` tool.
 
-**Current response:** *"I don't have access to real-time stock data..."* 🤷‍♂️
+```ts
+import { getStockPrice } from "./fetch-stock-price"
 
-## 2 – Check what's already set up
+export const agentTools = { 
+  getStockPrice
+}
+```
 
-Your template agent already has all dependencies installed:
-- ✅ `ai` - AI SDK v5 with streamText
-- ✅ `@ai-sdk/openai` - OpenAI provider
-- ✅ `@workspace/agent-utils` - Shared tools package
-- ✅ Working chat interface with useChat hook
-- ✅ Empty tools configuration ready for your code
+**Test your agent**: Now you should be able to fetch stock prices for WAYNE.
 
-## 3 – Add tools to your empty configuration
 
-Your workshop includes a **shared tools package** at `@workspace/agent-utils` with pre-built tools.
+## 2 – Leverage shared tools
 
-**Why shared tools?** Same tool definitions work with both AI SDK and MCP servers (you'll see this later!).
+Ideally the tool code should be packaged nicely and tested, since we are already using a monorepo we decided to make that easy for you! All of our tooks are provided as `@workspace/agent-utils`. To start using `@workspace/agent-utils` you can import the tools by name from `/tools` directory. 
 
-Your agent already has an empty tools configuration at `app/api/chat/tools.ts`. Let's add the public stock tools:
+We also provided a `api-client` this handles the nitty-gritty details of calling the DemoTradePro API Server, including retries, and error handling. Let's start by first importing the `createAPIClient` function to create our own client to call DemoTradePro API Server.
+
+In your `/apps/agent/app/route/tools.ts` import the `createAPIClient` function and then invoke it with `process.env.API_BASE_URL` this environment variable is configured to `"https://workshop-stock-api.auth101.dev/api/` by the init script, in the setup. 
+
+```ts
+import { createAPIClient } from '@workspace/agent-utils';
+
+/**
+ * Create shared API client for public endpoints
+ * No token provider needed for public market data
+ */
+const apiClient = createAPIClient(process.env.API_BASE_URL!);
+```
+
+Now we can import a pre-built tool from our toolkit, such as `GetStockPrice`, and create an instance suitable for Vercel AI SDK.
+
+```typescript
+import * as GetStockPrice from '@workspace/agent-utils/tools/get-stock-price';
+
+const getStockPrice = GetStockPrice.createAISDKTool(apiClient);
+```
+
+The above code replaces, the tool we wrote in the previous step, and the full file should can now be updated to 
+
+```typescript
+import { createAPIClient } from '@workspace/agent-utils';
+
+/**
+ * Create shared API client for public endpoints
+ * No token provider needed for public market data
+ */
+const apiClient = createAPIClient(process.env.API_BASE_URL!);
+const getStockPrice = GetStockPrice.createAISDKTool(apiClient);
+
+export const agentTools = {
+  getStockPrice
+}
+```
+
+**Test your agent**: Now you you should still be able to fetch stock prices for WAYNE.
+
+With the same pattern we can now import all tools that are available for Public API Usage, 
+the final file will look like.
 
 ```typescript
 /**
  * DemoTradePro Agent Tools Configuration
  * Centralized tool definitions for the chat agent
  */
-
+import { createAPIClient } from '@workspace/agent-utils';
 import * as GetStockPrice from '@workspace/agent-utils/tools/get-stock-price';
 import * as SearchStocks from '@workspace/agent-utils/tools/search-stocks';
 import * as GetStockInfo from '@workspace/agent-utils/tools/get-stock-info';
-import { createAPIClient } from '@workspace/agent-utils';
 
 /**
  * Create shared API client for public endpoints
@@ -103,50 +155,6 @@ export const agentTools = {
 - ✅ `getStockPrice` - Get current price for any stock symbol
 - ✅ `searchStocks` - Find stocks by company name
 - ✅ `getStockInfo` - Get detailed company information
-- ✅ **No authentication needed** - Public market data!
-
-## 4 – Update your agent to use the tools
-
-Your template agent already has a working API route at `app/api/chat/route.ts`, but it's not using any tools yet. Let's update it to use your tools configuration.
-
-**Replace the entire contents of `app/api/chat/route.ts` with:**
-
-```typescript
-import { openai } from '@ai-sdk/openai';
-import { streamText, UIMessage, convertToModelMessages, stepCountIs } from 'ai';
-import { agentTools } from './tools';
-
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
-
-export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
-
-  const result = streamText({
-    model: openai('gpt-4o'),
-    messages: convertToModelMessages(messages),
-    system: `You are a helpful stock trading assistant for DemoTradePro. You provide trading advice, market insights, and help users understand stock market concepts. You are knowledgeable, professional, and always emphasize risk management.
-
-You are currently assisting a user.
-
-Key guidelines:
-- Always remind users that trading involves risk
-- Provide educational information about stocks and markets
-- Help with basic trading concepts and strategies
-- Be conversational and helpful
-- Never provide specific financial advice or guarantees
-- You can reference the user by their name when appropriate
-
-You now have access to real-time stock market data through your tools. Use them when users ask about stock prices, company information, or want to search for stocks.`,
-    tools: agentTools,
-    stopWhen: stepCountIs(15),
-  });
-
-  return result.toUIMessageStreamResponse();
-}
-```
-
-## 5 – Test your enhanced agent
 
 Now let's test the stock tools.
 

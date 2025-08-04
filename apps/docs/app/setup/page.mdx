@@ -30,37 +30,28 @@ graph TB
 ```
 
 **By the end of this step:**
-- ✅ Template AI agent running (no authentication yet)
-- ✅ Access to hosted DemoTradePro platform for later tutorials
+- ✅ AI agent running
 - ✅ Ready to add tools and authentication
 - 🔄 **Next:** Add public stock tools to your agent
 
 ## Prerequisites
 
-* `nvm` with Node **LTS** (run `nvm use lts` or `nvm use --lts`)
-* **PNPM** package manager
-* **OpenAI API key** (get one at https://platform.openai.com/)
-
-### Using hosted DemoTradePro platform
-
-**Great news!** We provide hosted Stock API and Trader Web App so you can focus on building your agent:
-
-- 🌐 **Stock Web App**: Available at hosted URL (provided during workshop)
-- 📊 **Stock API**: Available at hosted URL (provides real market data)
-- 🔐 **Authentication**: You'll set this up in a later tutorial
-
----
+* **OpenAI API key** (get one at https://platform.openai.com/) or any other AI Key
 
 ## 1 – Clone the workshop repository
+
+First lets clone the git repository, so that we can get template and all the utilities for the workshop
 
 ```bash
 git clone https://github.com/ciamshrek/demo-trade-pro.git
 cd demo-trade-pro
-nvm use --lts     # critical requirement
+nvm use           # if using nvm
 pnpm install      # install dependencies
 ```
 
 ## 2 – Start your template agent
+
+Now lets add the OpenAI Keys, and run the agent
 
 ```bash
 cd apps/agent
@@ -69,6 +60,9 @@ pnpm dev  # starts on port 3003
 ```
 
 **Test your template agent:**
+
+At this point your template agent is fully functional and running
+
 1. **Open** `http://localhost:3003`
 2. **Ask:** "What's the current price of WAYNE stock?"
 3. **Expected response:** *"I don't have access to real-time stock data..."* 🤷‍♂️
@@ -79,13 +73,12 @@ pnpm dev  # starts on port 3003
 
 ---
 
-## What's included
+## Overview of what's included in your starter kit
 
-Your workshop starter includes:
-- **`apps/web`** - Full DemoTradePro trading interface (port 3000)
-- **`apps/api-server`** - REST API with JWT validation (port 3001)
+This starter kit is a monorepo which includes 
+
 - **`apps/agent`** - Template AI agent with no tools (port 3003)
-- **`apps/docs`** - This workshop documentation (port 3002)
 - **`packages/agent-utils`** - Shared tools package (we'll use this next!)
+- **`packages/ui`** - Prebuilt UI Components
 
 🚀 **Ready for the next step:** Adding public stock tools to your agent!

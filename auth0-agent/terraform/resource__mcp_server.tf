@@ -1,9 +1,8 @@
 # MCP (Model Context Protocol) Resource Server Configuration
 # 
-# This file defines the Auth0 resource server for the DemoTradePro MCP Server.
-# The MCP server allows AI agents to securely access trading tools with proper
-# authentication and authorization.
-#
+# This file defines the Auth0 resource server for the AI Agent MCP Server.
+# this allows our "agentic capabilities" to be used by any MCP Client like Claude 
+# 
 # To enable MCP functionality:
 # 1. Uncomment all resources below (remove the "# " prefix from each line)
 # 2. Run: terraform apply

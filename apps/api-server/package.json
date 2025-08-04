@@ -6,8 +6,7 @@
     "dev": "tsx watch src/local.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "start": "vc dev",
-    "build": "vc build"
+    "start": "vc dev"
   },
   "dependencies": {
     "@auth0/auth0-api-js": "^1.0.2",

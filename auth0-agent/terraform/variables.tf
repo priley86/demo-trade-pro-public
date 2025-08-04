@@ -35,7 +35,7 @@ variable "agent_callback_url" {
 # variable "source_tenant_domain" {
 #   description = "Domain of the source Auth0 tenant (DemoTradePro)"
 #   type        = string
-#   # Example: "your-source-tenant.us.auth0.com"
+#   # Example: "source-tenant.us.auth0.com"
 # }
 
 # variable "source_client_id" {
