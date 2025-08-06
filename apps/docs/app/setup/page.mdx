@@ -1,10 +1,8 @@
 # Local Setup
 
-> **Estimated time:** 10 minutes
-
 ## What we're building in this step
 
-```mermaid
+<Mermaid chart={`
 graph TB
     subgraph "Setup Complete"
         User[👤 User]
@@ -22,48 +20,121 @@ graph TB
     Web --> API
     API --> DB
     
-    classDef setup fill:#e1f5fe
-    classDef pending fill:#fff3e0
-    
     class Auth0,API,Web,DB setup
     class Agent pending
-```
+`} />
 
 **By the end of this step:**
 - ✅ AI agent running
 - ✅ Ready to add tools and authentication
 - 🔄 **Next:** Add public stock tools to your agent
 
-## Prerequisites
 
-* **OpenAI API key** (get one at https://platform.openai.com/) or any other AI Key
+## Setup an AI Inference Provider
 
-## 1 – Clone the workshop repository
+AI Agents use Inference to generate responses. This process requires access to large language model, or access to such a model via an API. For our workshop we are going to leverage hosted inference providers.
+
+<Tabs defaultValue="openai" className="w-full border rounded-md p-2">
+  <TabsList className="grid w-full grid-cols-3">
+    <TabsTrigger value="openai">OpenAI</TabsTrigger>
+    <TabsTrigger value="anthropic">Anthropic</TabsTrigger>
+    <TabsTrigger value="vercel">Vercel AI Gateway</TabsTrigger>
+  </TabsList>
+  
+  <TabsContent value="openai" className="space-y-4">
+    -  **Create account:** <ExternalLink href="https://platform.openai.com/signup">platform.openai.com/signup</ExternalLink>
+    - **Get API key:** <ExternalLink href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</ExternalLink>
+  </TabsContent>
+  
+  <TabsContent value="anthropic" className="space-y-4">
+    - **Create account:** <ExternalLink href="https://console.anthropic.com/">console.anthropic.com</ExternalLink>
+    - **Get API key:** <ExternalLink href="https://console.anthropic.com/settings/keys">console.anthropic.com/settings/keys</ExternalLink>
+    - **Note:** You'll need to update the model in `apps/agent/app/api/chat/route.ts` to use `model: anthropic('claude-3-haiku-20240307')`
+  </TabsContent>
+  
+  <TabsContent value="vercel" className="space-y-4">
+    - **Create account:** <ExternalLink href="https://vercel.com/signup">vercel.com/signup</ExternalLink>
+    - **Setup:** <ExternalLink href="https://vercel.com/docs/ai/ai-sdk-providers/vercel-ai-gateway">Vercel AI Gateway docs</ExternalLink>
+    - **Note:** You'll need to update the model in `apps/agent/app/api/chat/route.ts` to use `model: 'openai/gpt-oss-120b'` or your preferred model
+  </TabsContent>
+</Tabs>
+
+You'll need an API key from one of these providers. The starter-kit uses <ExternalLink href="https://ai-sdk.dev">Vercel AI SDK</ExternalLink> to abstract the inference providers.
+
+
+## Clone the workshop repository
 
 First lets clone the git repository, so that we can get template and all the utilities for the workshop
 
-```bash
+```bash 
 git clone https://github.com/ciamshrek/demo-trade-pro.git
 cd demo-trade-pro
 nvm use           # if using nvm
 pnpm install      # install dependencies
 ```
 
-## 2 – Start your template agent
+## Start your template agent
 
-Now lets add the OpenAI Keys, and run the agent
+Now let's add your AI API key and run the agent:
 
-```bash
-cd apps/agent
-echo "OPENAI_API_KEY=your_key_here" >> .env.local  # Add your OpenAI key
-pnpm dev  # starts on port 3003
-```
+<Tabs defaultValue="openai" className="w-full">
+  <TabsList className="grid w-full grid-cols-3">
+    <TabsTrigger value="openai">OpenAI</TabsTrigger>
+    <TabsTrigger value="anthropic">Anthropic</TabsTrigger>
+    <TabsTrigger value="vercel">Vercel AI Gateway</TabsTrigger>
+  </TabsList>
+  
+  <TabsContent value="openai">
+    ```bash
+    cd apps/agent
+    
+    # Create .env.local file with your OpenAI API key
+    nano .env.local  # or code .env.local, vim .env.local, etc.
+    
+    # Add this line to the file:
+    # OPENAI_API_KEY=your_actual_openai_key_here
+    
+    # Save and exit, then start the agent
+    pnpm dev  # starts on port 3003
+    ```
+  </TabsContent>
+  
+  <TabsContent value="anthropic">
+    ```bash
+    cd apps/agent
+    
+    # Create .env.local file with your Anthropic API key
+    nano .env.local  # or code .env.local, vim .env.local, etc.
+    
+    # Add this line to the file:
+    # ANTHROPIC_API_KEY=your_actual_anthropic_key_here
+    
+    # Save and exit, then start the agent
+    pnpm dev  # starts on port 3003
+    ```
+  </TabsContent>
+  
+  <TabsContent value="vercel">
+    ```bash
+    cd apps/agent
+    
+    # Create .env.local file with your Vercel API token
+    nano .env.local  # or code .env.local, vim .env.local, etc.
+    
+    # Add this line to the file:
+    # VERCEL_API_TOKEN=your_actual_vercel_token_here
+    
+    # Save and exit, then start the agent
+    pnpm dev  # starts on port 3003
+    ```
+  </TabsContent>
+</Tabs>
 
 **Test your template agent:**
 
 At this point your template agent is fully functional and running
 
-1. **Open** `http://localhost:3003`
+1. **Open** <ExternalLink showFavicon={false} href="http://localhost:3003">http://localhost:3003</ExternalLink>
 2. **Ask:** "What's the current price of WAYNE stock?"
 3. **Expected response:** *"I don't have access to real-time stock data..."* 🤷‍♂️
 

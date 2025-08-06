@@ -6,9 +6,10 @@ import { Copy, Check } from 'lucide-react'
 interface CodeBlockProps {
   children: React.ReactNode
   className?: string
+  language?: string
 }
 
-export function CodeBlock({ children, className = '' }: CodeBlockProps) {
+export function CodeBlock({ children, className = '', language }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
   // Extract the code text from children
@@ -44,28 +45,32 @@ export function CodeBlock({ children, className = '' }: CodeBlockProps) {
     }
   }
 
+  // Extract language from className if not provided
+  const detectedLanguage = language || className.match(/language-(\w+)/)?.[1] || 'shell'
+  const displayLanguage = detectedLanguage.charAt(0).toUpperCase() + detectedLanguage.slice(1)
+
   return (
-    <div className="relative group">
-      <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+    <div className="group relative bg-black rounded-xl transition-colors">
+      {/* Header bar with language and copy button */}
+      <div className="flex items-center justify-between px-4 py-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          {displayLanguage}
+        </span>
         <button
           onClick={copyToClipboard}
-          className="flex items-center gap-2 px-2 py-1 bg-gray-800 text-gray-200 rounded text-sm hover:bg-gray-700 transition-colors"
           title="Copy code"
+          className="p-2 rounded-md hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
         >
           {copied ? (
-            <>
-              <Check size={14} />
-              <span>Copied!</span>
-            </>
+            <Check size={14} />
           ) : (
-            <>
-              <Copy size={14} />
-              <span>Copy</span>
-            </>
+            <Copy size={14} />
           )}
         </button>
       </div>
-      <pre className={`${className} pr-20`}>
+      
+      {/* Code content with full width */}
+      <pre className={`${className} rounded-none`}>
         <code>{children}</code>
       </pre>
     </div>

@@ -1,10 +1,16 @@
 import createMDX from '@next/mdx'
-import { mdxComponents } from './components/mdx-components'
+import rehypePrettyCode from 'rehype-pretty-code'
 
 const withMDX = createMDX({
   options: {
     remarkPlugins: [],
-    rehypePlugins: [],
+    rehypePlugins: [
+      [rehypePrettyCode, {
+        theme: "github-dark-dimmed",
+        keepBackground: false,
+        defaultLang: 'shell',
+      }]
+    ],
   },
 })
 

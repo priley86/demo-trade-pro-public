@@ -13,7 +13,7 @@
 
 ## Architecture
 
-```mermaid
+<Mermaid chart={`
 flowchart LR
     subgraph Agent Tenant
         AT[Auth0 Agent Tenant]
@@ -36,7 +36,7 @@ flowchart LR
     A --> API: POST /orders + token
     API --> A: Order confirmed
     A --> U: "Trade executed!"
-```
+`} />
 
 ## 1 – Create Agent Auth0 Tenant
 

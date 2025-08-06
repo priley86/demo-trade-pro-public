@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTheme } from 'next-themes'
 import mermaid from 'mermaid'
 
 interface MermaidProps {
@@ -9,15 +10,20 @@ interface MermaidProps {
 }
 
 export function Mermaid({ chart, id }: MermaidProps) {
+  const { theme, resolvedTheme } = useTheme()
   // Generate a valid CSS selector ID without dots
   const safeId = id || `mermaid-${Date.now()}-${Math.floor(Math.random() * 10000)}`
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Initialize mermaid with custom config
+    // Determine the mermaid theme based on the current theme
+    const currentTheme = resolvedTheme || theme
+    const mermaidTheme = currentTheme === 'dark' ? 'dark' : 'default'
+    
+    // Initialize mermaid with theme-aware config
     mermaid.initialize({
       startOnLoad: false,
-      theme: 'default',
+      theme: mermaidTheme,
       securityLevel: 'loose',
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
       flowchart: {
@@ -52,8 +58,9 @@ export function Mermaid({ chart, id }: MermaidProps) {
           }
         } catch (error) {
           console.error('Mermaid rendering error:', error)
+          const isDark = currentTheme === 'dark'
           ref.current.innerHTML = `
-            <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+            <div class="p-4 ${isDark ? 'bg-red-950 border-red-800 text-red-200' : 'bg-red-50 border-red-200 text-red-800'} border rounded-lg">
               <strong>Mermaid Error:</strong> Failed to render diagram
               <pre class="mt-2 text-sm">${error}</pre>
             </div>
@@ -63,10 +70,10 @@ export function Mermaid({ chart, id }: MermaidProps) {
     }
 
     renderChart()
-  }, [chart, safeId])
+  }, [chart, safeId, theme, resolvedTheme])
 
   return (
-    <div className="my-6 p-4 bg-gray-50 rounded-lg border overflow-x-auto">
+    <div className="my-6 p-4 bg-muted rounded-lg border overflow-x-auto">
       <div ref={ref} className="mermaid-container" />
     </div>
   )

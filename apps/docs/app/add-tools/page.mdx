@@ -1,11 +1,11 @@
 # Add Public Tools to Your Agent
 
-AI Agents can't just interact with the outside world on their own, instead we need to provide them integrations. Our agent today uses [Vercel AI SDK](https://ai-sdk.dev) 
+AI Agents can't just interact with the outside world on their own, instead we need to provide them integrations. Our agent today uses <ExternalLink href="https://ai-sdk.dev">Vercel AI SDK</ExternalLink> 
 in order to access stock api, we'll provide it basic tools to call. 
 
 ## What we're building in this step
 
-```mermaid
+<Mermaid chart={`
 graph TB
     subgraph "Public Tools Added"
         User[👤 User]
@@ -21,14 +21,11 @@ graph TB
     Tools --> Agent
     Agent --> |"WAYNE is trading at $150.25"| User
     
-    classDef active fill:#e8f5e8
-    classDef tools fill:#fff3e0
-    
     class User,Agent,API active
     class Tools tools
-```
+`} />
 
-## 1 – Add tools
+## Add tools
 
 Your agent already has an empty tools configuration at `app/api/chat/tools.ts`. These are then imported into `app/api/chat/route.ts`. Lets start by building a very basic tool
 
@@ -58,7 +55,7 @@ export const getStockPrice = tool({
 
 Then you can import this tool in the tools, allowing the ai-agent to use it, update the `app/api/chat/tools.ts` to now expose the `getStockPrice` tool.
 
-```ts
+```typescript
 import { getStockPrice } from "./fetch-stock-price"
 
 export const agentTools = { 
@@ -69,7 +66,7 @@ export const agentTools = {
 **Test your agent**: Now you should be able to fetch stock prices for WAYNE.
 
 
-## 2 – Leverage shared tools
+## Leverage shared tools
 
 Ideally the tool code should be packaged nicely and tested, since we are already using a monorepo we decided to make that easy for you! All of our tooks are provided as `@workspace/agent-utils`. To start using `@workspace/agent-utils` you can import the tools by name from `/tools` directory. 
 
@@ -77,7 +74,7 @@ We also provided a `api-client` this handles the nitty-gritty details of calling
 
 In your `/apps/agent/app/route/tools.ts` import the `createAPIClient` function and then invoke it with `process.env.API_BASE_URL` this environment variable is configured to `"https://workshop-stock-api.auth101.dev/api/` by the init script, in the setup. 
 
-```ts
+```typescript
 import { createAPIClient } from '@workspace/agent-utils';
 
 /**

@@ -1,8 +1,5 @@
 # Add Authentication to Your Agent
 
-> **Goal:** Add Auth0 authentication to your working AI agent for secure user identification.
-> **Estimated time:** 10 minutes
-
 ## Why Authentication Matters
 
 Your agent currently works great with public tools, but has a critical limitation: **it doesn't know who you are**. Without user identity, your agent can't:
@@ -16,7 +13,7 @@ In this step, we'll solve this by adding Auth0 authentication, transforming your
 
 ## What we're building in this step
 
-```mermaid
+<Mermaid chart={`
 sequenceDiagram
     participant User as 👤 User
     participant Agent as 🤖 AI Agent<br/>:3003
@@ -39,7 +36,7 @@ sequenceDiagram
     Agent->>API: getStockPrice('WAYNE')
     API->>Agent: $150.25
     Agent->>User: "WAYNE is $150.25"
-```
+`} />
 
 **Security layers we're adding:**
 - ✅ **Middleware protection** - Auth0 redirects for all routes
@@ -47,37 +44,31 @@ sequenceDiagram
 - ✅ **API route protection** - Session verification in chat endpoint
 - 🔄 **Next:** Add portfolio tools with token delegation
 
-## 1 – Test your current agent
-
-Your agent works great with public tools but has no authentication:
-
-```bash
-cd apps/agent
-pnpm dev  # starts on port 3003 (should already be running)
-```
-
-Open `http://localhost:3003` - anyone can use your agent! 🚨
-
-**Security problem:** No user identity means no personalized data access.
-
 ---
 
-## 2 – Create your Auth0 tenant
+## Create your Auth0 tenant
 
 First, create your own Auth0 tenant for authentication:
 
-Go to **https://auth0.ai** and create a new Auth0 tenant:
+Go to **<ExternalLink href="https://auth0.ai">https://auth0.ai</ExternalLink>** 
 
-1. **Click "Sign Up"** if you don't have an Auth0 account
-2. **Create a new tenant** - choose a unique tenant name (e.g., `yourname-workshop`)
-3. **Select region** - Choose the region closest to you
-4. **Note your tenant domain** - You'll need this (e.g., `yourname-workshop.us.auth0.com`)
 
-> 📸 **Screenshot Placeholder**: Auth0 tenant creation process
-> - Show the Auth0 signup/tenant creation interface
-> - Highlight the tenant domain that gets generated
+1. **Click "Get Started"** and then complete the signup process
 
-## 3 – Set up Auth0 CLI and initialize your tenant
+    ![Auth0 Landing](/auth0-landing.png)
+
+2. Select a region and approve the "Terms and Conditions" for GenAI Developer Preview 
+
+    ![Auth0 Tenant Creation](/auth0-add-locality.png)
+
+3. Click *Continue* button, the tenant name will be automatically generated for
+
+    ![Auth0 Dashboard](/auth0-tenant-with-highlight.png)
+
+4. **Note your tenant domain** - You'll need this (e.g., `genai-9199191919199191.us.auth0.com`)
+
+
+## Set up Auth0 CLI and initialize your tenant
 
 Configure the Auth0 CLI and run the initialization script:
 
@@ -92,52 +83,57 @@ cd auth0-agent
 ```
 
 **What the init script does:**
+
 - ✅ **Creates Management Client** - Auth0 client for Terraform
 - ✅ **Runs Terraform** - Sets up API resource and agent application  
-- ✅ **Generates Environment** - Creates `apps/agent/.env.local` file
-- ✅ **Ready for authentication** - Prepared for the next steps
+- ✅ **Generates Environment** - Creates `apps/agent/.env` file
 
-## 4 – Set up enterprise connection (for sign-in)
+## Set up enterprise connection (for sign-in)
 
-**Important:** You need to connect your tenant to the hosted DemoTradePro platform to enable sign-in.
+Since we're building an Agent that plugs into the existing Demo Trade Pro ecosystem, we'll leverage the identity provider that already secures its web and API layers.
 
-**Option A: Use the developer tool (Recommended)**
+Visit the hosted Stock Web App at <PlatformLink type="app" path="/developer">Developer Platform</PlatformLink> and:
 
-Visit the hosted Stock Web App at `$STOCK_WEB_APP/developer` and:
+  1. **Enter your tenant domain** (e.g., `genai-9199191919199191.us.auth0.com`)
+  2. **Click "Generate OIDC Configuration"**
 
-1. **Enter your tenant domain** (e.g., `yourname-workshop.us.auth0.com`)
-2. **Click "Generate OIDC Configuration"**
-3. **Copy the generated `terraform.tfvars` content** 
-4. **Add it to your `auth0-agent/terraform/terraform.tfvars` file**
-5. **Run the connection script:**
+This will generate a set of credentials that grant access to the DemoTradePro API, and allow your agent to authenticate with DemoTradePro's Identity Provider.
 
-> 📸 **Screenshot Placeholder**: Developer Tool Interface
-> - Show the `$STOCK_WEB_APP/developer` page interface
-> - Highlight the tenant domain input field
-> - Show the "Generate OIDC Configuration" button
-> 
-> 📸 **Screenshot Placeholder**: Generated OIDC Configuration
-> - Show the generated `terraform.tfvars` content that appears
-> - Highlight the copy button or the configuration text area
+At this point we need to connect the DemoTradePro to our Auth0 Tenant, we will do that by using <ExternalLink href="https://auth0.com/docs/secure/identity-providers/enterprise-connections/openid-connect">OpenID Connect</ExternalLink>. In Auth0 Identity Providers, are known as Connections, to add DemoTradePro as an OpenID Connect Identity Provider, you have two options, either set up manually via dashboard, or use the terraform automation.
 
-```bash
-cd auth0-agent
-./add-oidc-connection.sh
-```
+<Tabs defaultValue="manual" className="w-full">
+  <TabsList className="grid w-full grid-cols-2">
+    <TabsTrigger value="manual">Manual Configuration</TabsTrigger>
+    <TabsTrigger value="developer-tool">Terraform</TabsTrigger>
+  </TabsList>
+  
+  <TabsContent value="developer-tool" className="space-y-4">
+    1. **Copy the generated `terraform.tfvars` content** 
+    2. **Add it to your `auth0-agent/terraform/terraform.tfvars` file**
+    3. **Run the connection script:**
 
-**Option B: Manual configuration**
+    ```bash
+    cd auth0-agent
+    ./add-oidc-connection.sh
+    ```
+  </TabsContent>
+  
+  <TabsContent value="manual" className="space-y-4">
+    Configure the enterprise connection manually in your Auth0 Dashboard:
 
-Alternatively, configure the enterprise connection manually in your Auth0 Dashboard:
+    1. Go to **Authentication > Enterprise > OpenID Connect**
+       ![Auth0 Enterprise Connections](/images/enterprise-connection.png)
+    2. Create a new OIDC connection pointing to the hosted DemoTradePro tenant, name it "demo-trade-pro", and paste the url <PlatformLink type="auth" path="/.well-known/openid-configuration">here</PlatformLink>
+       ![Auth0 Enterprise Connections](/images/new-oidc-connection.png)
+    3. Copy Paste the ClientID and Client Secret you obtained from the Developer section of the Demo Trade Pro Platform
+       ![Auth0 Enterprise Connections](/images/oidc-connection-filled.png)
+    4. Scroll down and click "Create"
+  </TabsContent>
+</Tabs>
 
-1. Go to **Authentication > Enterprise > OpenID Connect**
-2. Create a new OIDC connection pointing to the hosted DemoTradePro tenant
-3. Configure the callback URLs and scopes
+## Install NextJS Auth0 SDK
 
-## 5 – Install NextJS Auth0 SDK
-
-**Note:** The Auth0 SDK might already be installed from the init script. If so, you can skip this step.
-
-Install or verify the Auth0 NextJS SDK (version 4.9.0 or higher):
+Install the Auth0 NextJS SDK (version 4.9.0 or higher):
 
 ```bash
 cd apps/agent
@@ -146,9 +142,9 @@ pnpm add @auth0/nextjs-auth0@^4.9.0
 
 ---
 
-## 6 – Set up Auth0 client configuration
+## Set up Auth0 client configuration
 
-Create the Auth0 client configuration. Copy the basic setup without the token helper (we'll add that later):
+Now we need to setup the Auth0 SDK Integration in the Agent App itself.
 
 **Create `lib/auth0.ts`:**
 
@@ -158,7 +154,6 @@ import { Auth0Client } from "@auth0/nextjs-auth0/server";
 // Server-side Auth0 client instance
 export const auth0 = new Auth0Client({
   authorizationParameters: {
-    audience: process.env.AUTH0_AUDIENCE,
     scope: process.env.API_DEFAULT_SCOPES
   }
 });
@@ -166,13 +161,12 @@ export const auth0 = new Auth0Client({
 
 **What this does:**
 - **Server-side client** - Handles authentication on the backend
-- **Audience configuration** - Points to your stock trading API
 - **Scope configuration** - Defines what permissions to request
-- **Environment variables** - Keeps secrets secure
+- **Environment variables** - Auth0 will read the environment variables setup by the init script in `apps/agent/.env`
 
 ---
 
-## 7 – Set up authentication middleware
+## Set up authentication middleware
 
 Create middleware to protect all routes and adds the Auth0 route handlers such as /auth/login and /auth/logout.
 
@@ -208,7 +202,7 @@ export const config = {
 
 ---
 
-## 8 – Enable authentication in your page
+## Enable authentication in your page
 
 Your template agent currently bypasses authentication. Let's enable it!
 
@@ -236,7 +230,7 @@ export default auth0.withPageAuthRequired(
 
 ---
 
-## 9 – Update your API route to use authentication
+## Update your API route to use authentication
 
 Your agent's API route needs to verify user identity. **Replace the entire contents of `app/api/chat/route.ts` with:**
 
@@ -292,64 +286,14 @@ You now have access to real-time stock market data through your tools. Use them 
 
 ---
 
-## 5 – Test your authenticated agent
+## Test your authenticated agent
 
-Restart your development server:
-
-```bash
-pnpm dev
-```
-
-Visit `http://localhost:3003`:
+Visit <ExternalLink showFavicon={false} href="http://localhost:3003">http://localhost:3003</ExternalLink>
 
 1. **Automatic redirect** to Auth0 login
 2. **After login** - redirected back to chat
-3. **Test stock tools:** "What's the current price of WAYNE stock?"
+3. **Test stock tools:** "Who am I?"
 4. **Personalized response** - AI should greet you by name!
-
----
-
-## ✅ Success! Multi-Layer Security
-
-**Your agent now has defense-in-depth security:**
-- ✅ **Middleware protection** - Redirects to Auth0 if not authenticated
-- ✅ **Page-level protection** - Server-side auth verification
-- ✅ **API route protection** - Chat endpoint requires valid session
-- ✅ **Personalized AI** - Agent knows who you are
-- ✅ **Tools still work** - Public stock data access maintained
-
-> 📸 **Screenshot Placeholder**: Authenticated Agent in Action
-> - Show the agent interface at `http://localhost:3003` after successful authentication
-> - Display a user profile/session indicator
-> - Show the agent responding to a query while authenticated
-> - Highlight any user-specific elements in the interface
-
-**What you've built:**
-- ✅ Secure AI agent with user identity
-- ✅ Auth0 integration with proper token handling
-- ✅ Public stock tools working with authentication
-- 🔄 **Next:** Add portfolio tools with token delegation
-
-**Security problem solved:** Your agent now knows who's using it and can provide personalized responses while maintaining access to public stock data.
-- ✅ **Complete security** - No unauthorized access to any part of the application
-- ✅ **Sign out works** - Redirects to Auth0 logout and clears session
-
----
-
-## 🛠️ Troubleshooting
-
-**Login redirect issues:** Check that your Auth0 application has `http://localhost:3003/auth/callback` in the allowed callback URLs (note: `/auth/callback`, not `/api/auth/callback`).
-
-**Environment variable errors:** Ensure you ran `auth0-agent/init.sh` and have all Auth0 environment variables set in `.env.local`.
-
----
-
-## 📚 Key Auth0 v4 SDK Facts
-
-- **No `handleAuth()` function** - This was removed in v4
-- **No API route files needed** - Middleware provides `/auth/login`, `/auth/logout`, `/auth/callback` automatically  
-- **Middleware is required** - `auth0.middleware()` handles all authentication
-- **Official docs:** https://auth0.com/docs/quickstart/webapp/nextjs/01-login
 
 ---
 
@@ -363,5 +307,3 @@ Visit `http://localhost:3003`:
 - 🚫 **Zero unauthorized access** - Every entry point requires Auth0 authentication
 
 **But there's a problem:** How does your agent access *your* portfolio data from the API?
-
-**Coming up:** We'll add tools that can fetch your personal data... and discover why this creates a dangerous security temptation! 🚨
