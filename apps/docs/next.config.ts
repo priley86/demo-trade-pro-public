@@ -18,6 +18,7 @@ const withMDX = createMDX({
 const nextConfig = {
   // Configure `pageExtensions` to include MDX files
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  transpilePackages: ['@workspace/ui'],
   // Optionally, add any other Next.js config below
 }
 

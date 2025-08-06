@@ -9,17 +9,17 @@ export const mdxComponents: MDXComponents = {
     let language: string | undefined;
     
     // Check data attributes
-    const dataLanguage = (props as any)['data-language'] || (props as any)['data-lang'];
-    const className = (props as any).className || '';
+    const dataLanguage = (props as Record<string, unknown>)['data-language'] as string | undefined || (props as Record<string, unknown>)['data-lang'] as string | undefined;
+    const className = (props as { className?: string }).className || '';
     
     // Try to extract language from className
     const classLanguage = className.match(/language-(\w+)/)?.[1];
     
     // Check if children has language info (rehype-pretty-code might put it on the code element)
     if (React.isValidElement(children) && children.props) {
-      const childProps = children.props as any;
-      const childClassName = childProps.className || '';
-      const childDataLanguage = childProps['data-language'] || childProps['data-lang'];
+      const childProps = children.props as Record<string, unknown>;
+      const childClassName = (childProps.className as string) || '';
+      const childDataLanguage = (childProps['data-language'] as string) || (childProps['data-lang'] as string);
       const childClassLanguage = childClassName.match(/language-(\w+)/)?.[1];
       language = childDataLanguage || childClassLanguage;
     }
