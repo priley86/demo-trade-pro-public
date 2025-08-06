@@ -222,27 +222,6 @@ export default function DeveloperClient() {
                 {result.tfvars_content}
               </pre>
             </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-              <h4 className="font-medium text-blue-900 mb-2">🚀 Next Steps for Participant</h4>
-              <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
-                <li>
-                  <strong>Copy the Terraform configuration</strong> above to their 
-                  <code className="bg-white px-1 rounded text-xs ml-1">auth0-agent/terraform/terraform.tfvars</code> file
-                </li>
-                <li>
-                  <strong>Run the setup script:</strong>
-                  <code className="bg-white px-2 py-1 rounded text-xs ml-2 block mt-1">cd auth0-agent && ./add-oidc-connection.sh</code>
-                </li>
-                <li>
-                  <strong>Test the OIDC connection</strong> by logging into their agent application
-                </li>
-              </ol>
-              <div className="mt-3 p-3 bg-blue-100 rounded text-xs text-blue-700">
-                💡 <strong>Infrastructure as Code:</strong> The OIDC connection will be managed through Terraform, 
-                making it easy to destroy and recreate as needed during the workshop.
-              </div>
-            </div>
           </CardContent>
         </Card>
       )}
