@@ -1,7 +1,11 @@
+import React from 'react'
+
 import { MDXComponents } from 'mdx/types'
 import { CodeBlock } from './code-block'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@workspace/ui/components/tabs'
-import React from 'react'
+import { ExternalLink } from './external-link'
+import { PlatformLink } from './platform-link'
+import { Mermaid } from './mermaid'
 
 export const mdxComponents: MDXComponents = {
   pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => {
@@ -138,4 +142,10 @@ export const mdxComponents: MDXComponents = {
   TabsList,
   TabsTrigger,
   TabsContent,
+  
+  // Link components
+  ExternalLink,
+  PlatformLink,
+
+  Mermaid,
 }

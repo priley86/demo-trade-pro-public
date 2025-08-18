@@ -2,14 +2,15 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
-import { Send, Bot, User, TrendingUp } from 'lucide-react';
+import { Send, Bot, User, TrendingUp, LogOut } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
 import { Badge } from '@workspace/ui/components/badge';
 import { cn } from '@workspace/ui/lib/utils';
+import { User as Auth0User } from '@auth0/nextjs-auth0/types';
 
-export default function ChatClient() {
+export default function ChatClient({ user }: { user: Auth0User | null }) {
   const [input, setInput] = useState('');
   const { messages, sendMessage } = useChat();
 
@@ -33,12 +34,14 @@ export default function ChatClient() {
               Welcome! Your intelligent trading assistant for fictional companies.
             </p>
             <div className="flex items-center gap-3">
-              {/* <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <a href="/auth/logout" className="flex items-center gap-1">
-                  <LogOut className="h-3 w-3" />
-                  Sign Out
-                </a>
-              </button> */}
+              {user && (
+                <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                  <a href="/auth/logout" className="flex items-center gap-1">
+                    <LogOut className="h-3 w-3" />
+                    Sign Out
+                  </a>
+                </button>
+              )}
             </div>
           </div>
         </div>

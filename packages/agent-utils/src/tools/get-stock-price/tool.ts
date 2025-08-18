@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { tool } from 'ai'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import { createAPIClient, type DemoTradeProAPIClient } from '../../utils/api-client'
 import type { StockPrice } from '../../types/api.js'
 
@@ -48,7 +47,7 @@ export function createMCPTool(handler: (params: GetStockPriceParams) => Promise<
   return {
     name: 'getStockPrice',
     description: 'Get current stock price by symbol - DemoTradePro',
-    inputSchema: zodToJsonSchema(GetStockPriceSchema),
+    inputSchema: GetStockPriceSchema.shape,
     handler
   }
 }

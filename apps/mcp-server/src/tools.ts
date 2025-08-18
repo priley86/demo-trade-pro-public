@@ -1,87 +1,63 @@
 /**
  * Defines the tools for the DemoTradePro MCP server.
- * Uses shared tools from @workspace/agent-utils with MCP adapter layer.
+ * Uses shared tools from @workspace/agent-utils directly via createMCPTool factories.
+ * Uses AsyncLocalStorage to provide auth context to tools.
  */
-import { z } from 'zod';
-import type { AppContext } from './types.js';
-import type { Auth } from '@auth0/auth0-mcp-js';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { createAPIClient } from '@workspace/agent-utils';
-
-// Import shared tools
+// Import MCP tool factories directly
 import * as GetPortfolio from '@workspace/agent-utils/tools/get-portfolio';
 import * as GetStockPrice from '@workspace/agent-utils/tools/get-stock-price';
 import * as SearchStocks from '@workspace/agent-utils/tools/search-stocks';
 import * as GetStockInfo from '@workspace/agent-utils/tools/get-stock-info';
 import * as CreateOrder from '@workspace/agent-utils/tools/create-order';
+import type { Auth0MCP, Auth } from '@auth0/auth0-mcp-hono';
+
+// AsyncLocalStorage for getAccessTokenForConnection function
+export const authContext = new AsyncLocalStorage<{
+  auth0: Auth0MCP,
+  context: Auth,
+}>();
 
 /**
- * Create API client for shared tools
- * Note: MCP server will need to handle token forwarding from client
+ * Create API client that uses AsyncLocalStorage for auth context
  */
 function createMCPAPIClient() {
-  // For MCP server, we'll need to handle token forwarding differently
-  // This is a placeholder - actual implementation depends on how tokens are passed
   return createAPIClient(
-    process.env.API_BASE_URL || 'http://localhost:3001/api',
+    process.env.API_BASE_URL || 'http://localhost:3001/api/',
     async () => {
-      // Token will be provided by MCP client via JWT forwarding
-      // This is handled at the transport level
-      return undefined;
+      // Get getAccessTokenForConnection function from AsyncLocalStorage
+      const context = authContext.getStore();
+      if (!context) {
+        console.warn('No getAccessTokenForConnection function available in AsyncLocalStorage');
+        return undefined;
+      }
+      
+      try {
+        // Call the function to get the access token
+        const token = await context.auth0.getAccessTokenForConnection({ 
+          connection: 'demotradepro-oidc' 
+        }, context.context);
+        return token;
+      } catch (error) {
+        console.error('Failed to get access token:', error);
+        return undefined;
+      }
     }
   );
 }
 
+// Create API client instance
 const apiClient = createMCPAPIClient();
 
 /**
- * Helper function to adapt MCP tools to the expected format
+ * Array of MCP tools that use AsyncLocalStorage for auth context.
+ * These can be created once and reused.
  */
-function adaptMCPTool(
-  mcpTool: ReturnType<typeof GetPortfolio.createMCPTool>,
-  requiredScopes: string[]
-) {
-  return {
-    name: mcpTool.name,
-    description: mcpTool.description,
-    requiredScopes,
-    inputSchema: mcpTool.inputSchema,
-    handler: async (c: AppContext, extra: { authInfo: Auth; arguments: Record<string, unknown> }) => {
-      const { authInfo, arguments: args } = extra;
-      const logger = c.get('logger');
-      
-      try {
-        // Call the MCP tool handler
-        const result = await mcpTool.handler(args);
-        
-        logger.info(`🔧 ${mcpTool.name} tool completed`, { user: authInfo.extra.sub });
-        
-        return {
-          content: [{ 
-            type: 'text' as const, 
-            text: JSON.stringify(result, null, 2)
-          }],
-        };
-      } catch (error) {
-        logger.error(`Tool ${mcpTool.name} failed:`, error);
-        throw error;
-      }
-    },
-  };
-}
-
-/**
- * Array of tool definitions for DemoTradePro MCP server.
- * Each tool uses the shared tools from @workspace/agent-utils via createMCPTool factories.
- */
-export const tools = [
-  // Portfolio tools
-  adaptMCPTool(GetPortfolio.createMCPTool(apiClient), ['tool:portfolio']),
-  
-  // Stock market tools
-  adaptMCPTool(GetStockPrice.createMCPTool(apiClient), ['tool:stocks']),
-  adaptMCPTool(SearchStocks.createMCPTool(apiClient), ['tool:stocks']),
-  adaptMCPTool(GetStockInfo.createMCPTool(apiClient), ['tool:stocks']),
-  
-  // Trading tools
-  adaptMCPTool(CreateOrder.createMCPTool(apiClient), ['tool:orders']),
+export const mcpTools = [
+  GetPortfolio.createMCPTool(apiClient),
+  GetStockPrice.createMCPTool(apiClient),
+  SearchStocks.createMCPTool(apiClient),
+  GetStockInfo.createMCPTool(apiClient),
+  CreateOrder.createMCPTool(apiClient),
 ];

@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { tool } from 'ai'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { DemoTradeProAPIClient } from '../../utils/api-client'
 import type { StockInfo } from '../../types/api.js'
 
@@ -52,7 +51,7 @@ export function createMCPTool(handler: (params: GetStockInfoParams) => Promise<S
   return {
     name: 'getStockInfo',
     description: 'Get detailed stock information including metrics and performance - DemoTradePro',
-    inputSchema: zodToJsonSchema(GetStockInfoSchema),
+    inputSchema: GetStockInfoSchema.shape,
     handler
   }
 }

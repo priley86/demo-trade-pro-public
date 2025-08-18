@@ -32,6 +32,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^2.0.0
         version: 2.0.0(react@19.1.0)(zod@3.25.76)
+      '@auth0/nextjs-auth0':
+        specifier: ^4.9.0
+        version: 4.9.0(next@15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@workspace/agent-utils':
         specifier: workspace:*
         version: link:../../packages/agent-utils
@@ -203,24 +206,33 @@ importers:
 
   apps/mcp-server:
     dependencies:
+      '@auth0/auth0-mcp-hono':
+        specifier: link:../../../work/okta/auth0-auth-js/packages/auth0-mcp-hono
+        version: link:../../../work/okta/auth0-auth-js/packages/auth0-mcp-hono
+      '@hono/mcp':
+        specifier: ^0.1.1
+        version: 0.1.1(@modelcontextprotocol/sdk@1.17.2)(hono@4.8.12)
       '@hono/node-server':
         specifier: ^1.8.2
         version: 1.18.1(hono@4.8.12)
       '@modelcontextprotocol/sdk':
-        specifier: ^1.17.0
-        version: 1.17.1
+        specifier: ^1.17.2
+        version: 1.17.2
       '@workspace/agent-utils':
         specifier: workspace:*
         version: link:../../packages/agent-utils
-      fetch-to-node:
-        specifier: ^2.1.0
-        version: 2.1.0
+      dotenv:
+        specifier: ^16.4.0
+        version: 16.6.1
       hono:
         specifier: ^4.8.12
         version: 4.8.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
+      zod-to-json-schema:
+        specifier: ^3.22.0
+        version: 3.24.6(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^20.11.17
@@ -973,6 +985,12 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
+  '@hono/mcp@0.1.1':
+    resolution: {integrity: sha512-2iQ4xBKfQdBBJP3V1/XCVyxQZeWWnxJG+5ytu9/Xuwwje3D70fm9ws0VV536rZ3CKWrnZZ/X+xeJ7FwR3ErVbw==}
+    peerDependencies:
+      '@modelcontextprotocol/sdk': ^1.12.0
+      hono: '>=4.0.0'
+
   '@hono/node-server@1.18.1':
     resolution: {integrity: sha512-O3puG/b7owYYmoQ2XPBf3SxBz6Dhk5VmWFhbaBU8/5wcUaXUPS0goxaI2Zfyg+Cu14ILJHEU7IFRw7miFxuXxg==}
     engines: {node: '>=18.14.1'}
@@ -1277,8 +1295,8 @@ packages:
   '@mermaid-js/parser@0.6.2':
     resolution: {integrity: sha512-+PO02uGF6L6Cs0Bw8RpGhikVvMWEysfAyl27qTlroUB8jSWr1lL0Sf6zi78ZxlSnmgSY2AMMKVgghnN9jTtwkQ==}
 
-  '@modelcontextprotocol/sdk@1.17.1':
-    resolution: {integrity: sha512-CPle1OQehbWqd25La9Ack5B07StKIxh4+Bf19qnpZKJC1oI22Y0czZHbifjw1UoczIfKBwBDAp/dFxvHG13B5A==}
+  '@modelcontextprotocol/sdk@1.17.2':
+    resolution: {integrity: sha512-EFLRNXR/ixpXQWu6/3Cu30ndDFIFNaqUXcTqsGebujeMan9FzhAaFFswLRiFj61rgygDRr8WO1N+UijjgRxX9g==}
     engines: {node: '>=18'}
 
   '@napi-rs/wasm-runtime@0.2.12':
@@ -3708,9 +3726,6 @@ packages:
       picomatch:
         optional: true
 
-  fetch-to-node@2.1.0:
-    resolution: {integrity: sha512-Wq05j6LE1GrWpT2t1YbCkyFY6xKRJq3hx/oRJdWEJpZlik3g25MmdJS6RFm49iiMJw6zpZuBOrgihOgy2jGyAA==}
-
   figures@3.2.0:
     resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
     engines: {node: '>=8'}
@@ -5986,6 +6001,17 @@ snapshots:
       react-dom: 19.0.0(react@19.0.0)
       swr: 2.3.4(react@19.0.0)
 
+  '@auth0/nextjs-auth0@4.9.0(next@15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@edge-runtime/cookies': 5.0.2
+      '@panva/hkdf': 1.2.1
+      jose: 6.0.12
+      next: 15.4.5(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      oauth4webapi: 3.6.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      swr: 2.3.4(react@19.1.0)
+
   '@babel/runtime-corejs3@7.26.9':
     dependencies:
       core-js-pure: 3.40.0
@@ -6262,6 +6288,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@hono/mcp@0.1.1(@modelcontextprotocol/sdk@1.17.2)(hono@4.8.12)':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.17.2
+      hono: 4.8.12
+
   '@hono/node-server@1.18.1(hono@4.8.10)':
     dependencies:
       hono: 4.8.10
@@ -6535,7 +6566,7 @@ snapshots:
     dependencies:
       langium: 3.3.1
 
-  '@modelcontextprotocol/sdk@1.17.1':
+  '@modelcontextprotocol/sdk@1.17.2':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
@@ -9248,8 +9279,6 @@ snapshots:
   fdir@6.4.6(picomatch@4.0.3):
     optionalDependencies:
       picomatch: 4.0.3
-
-  fetch-to-node@2.1.0: {}
 
   figures@3.2.0:
     dependencies:

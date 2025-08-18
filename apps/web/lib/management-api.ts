@@ -46,7 +46,11 @@ export async function createWorkshopClient(request: WorkshopClientRequest): Prom
       allowed_origins: [origin],
       web_origins: [origin],
       grant_types: ['authorization_code', 'refresh_token'],
-      token_endpoint_auth_method: 'client_secret_basic'
+      token_endpoint_auth_method: 'client_secret_basic',
+      jwt_configuration: {
+        alg: 'RS256',
+      },
+      oidc_conformant: true,
     });
 
     if (!client.data.client_id || !client.data.client_secret) {

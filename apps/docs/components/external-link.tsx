@@ -28,7 +28,7 @@ export function ExternalLink({
     }
   }, [href])
 
-  const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : null
+  const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=96` : null
 
   return (
     <a

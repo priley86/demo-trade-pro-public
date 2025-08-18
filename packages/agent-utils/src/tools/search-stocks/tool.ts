@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { tool } from 'ai'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { DemoTradeProAPIClient } from '../../utils/api-client'
 import type { StockInfo } from '../../types/api'
 
@@ -57,7 +56,7 @@ export function createMCPTool(handler: (params: SearchStocksParams) => Promise<S
   return {
     name: 'searchStocks',
     description: 'Search for stocks by name or symbol - DemoTradePro',
-    inputSchema: zodToJsonSchema(SearchStocksSchema),
+    inputSchema: SearchStocksSchema.shape,
     handler
   }
 }

@@ -1,11 +1,32 @@
 import { openai } from '@ai-sdk/openai';
 import { streamText, UIMessage, convertToModelMessages, stepCountIs } from 'ai';
 import { agentTools } from './tools';
-
+import { auth0 } from '@/lib/auth0';
+import { experimental_createMCPClient } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+
+  const session = await auth0.getSession();
+  const user = session?.user;
+  console.log("Attempting to connect to MCP");
+  const mcpServer = await experimental_createMCPClient({
+    transport: {
+      type: 'sse',
+      url: 'http://localhost:3004',
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+      },
+    },
+    name: 'mcp-server'
+  });
+
+  console.log("Trying to load tools from MCP");
+
+  const tools = await mcpServer.tools();
+
+  console.log("Loaded tools from MCP");
 
   const { messages }: { messages: UIMessage[] } = await req.json();
 
@@ -14,7 +35,7 @@ export async function POST(req: Request) {
     messages: convertToModelMessages(messages),
     system: `You are a helpful stock trading assistant for DemoTradePro. You provide trading advice, market insights, and help users understand stock market concepts. You are knowledgeable, professional, and always emphasize risk management.
 
-You are currently assisting a user.
+You are currently assisting ${user?.name || 'a user'} (${user?.email || 'authenticated user'}).
 
 Key guidelines:
 - Always remind users that trading involves risk
@@ -25,7 +46,10 @@ Key guidelines:
 - You can reference the user by their name when appropriate
 
 You now have access to real-time stock market data through your tools. Use them when users ask about stock prices, company information, or want to search for stocks.`,
-    tools: agentTools,
+    tools: {
+      ...agentTools,
+      ...tools,
+    },
     stopWhen: stepCountIs(15),
   });
 

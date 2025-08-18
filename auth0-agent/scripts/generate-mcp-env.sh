@@ -30,6 +30,8 @@ AUTH0_DOMAIN=$(terraform output -raw auth0_domain)
 AUTH0_TENANT=$(terraform output -raw auth0_tenant)
 MCP_AUDIENCE=$(terraform output -raw mcp_audience)
 MCP_SERVER_URL=$(terraform output -raw mcp_server_url)
+MCP_CLIENT_ID=$(terraform output -raw mcp_client_id)
+MCP_CLIENT_SECRET=$(terraform output -raw mcp_client_secret)
 
 # Write .env file for the MCP server
 cat > "$MCP_ENV_FILE" <<EOF
@@ -40,10 +42,13 @@ AUTH0_TENANT=$AUTH0_TENANT
 # MCP Server Configuration
 MCP_AUDIENCE=$MCP_AUDIENCE
 MCP_SERVER_URL=$MCP_SERVER_URL
+MCP_CLIENT_ID=$MCP_CLIENT_ID
+MCP_CLIENT_SECRET=$MCP_CLIENT_SECRET
 NODE_ENV=development
 
 # The MCP server uses the Auth0 domain and tenant to validate JWTs
 # and the MCP_AUDIENCE to ensure tokens are intended for this resource server
+# MCP_CLIENT_ID and MCP_CLIENT_SECRET are for the resource server client
 EOF
 
 echo ".env written to $MCP_ENV_FILE"
@@ -53,6 +58,8 @@ echo "  - AUTH0_DOMAIN: $AUTH0_DOMAIN"
 echo "  - AUTH0_TENANT: $AUTH0_TENANT"
 echo "  - MCP_AUDIENCE: $MCP_AUDIENCE"
 echo "  - MCP_SERVER_URL: $MCP_SERVER_URL"
+echo "  - MCP_CLIENT_ID: $MCP_CLIENT_ID"
+echo "  - MCP_CLIENT_SECRET: [REDACTED]"
 echo ""
 echo "🔧 MCP Server Tools Available:"
 echo "  - get_portfolio (scope: portfolio:read)"

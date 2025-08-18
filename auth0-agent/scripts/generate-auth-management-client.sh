@@ -84,7 +84,7 @@ SCOPES=(
   "read:signing_keys" "update:signing_keys"
   "create:log_streams" "read:log_streams" "update:log_streams" "delete:log_streams"
   "read:attack_protection" "update:attack_protection"
-  "read:client_credentials" "update:client_credentials"
+  "read:client_credentials" "update:client_credentials" "update:connections_options"
 )
 
 SCOPE_JSON=$(printf '"%s",' "${SCOPES[@]}" | sed 's/,$//')

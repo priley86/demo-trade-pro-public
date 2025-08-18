@@ -20,7 +20,9 @@ function makeConfig(
   tenant: string,
   serverUrl: string,
   audience: string,
-  debugAuth: boolean
+  debugAuth: boolean,
+  clientId: string,
+  clientSecret: string
 ): Config {
   return {
     resourceServerUrl: new URL(normalizeUrl(serverUrl)),
@@ -30,6 +32,8 @@ function makeConfig(
     scopesSupported: ['tool:portfolio', 'tool:stocks', 'tool:orders'],
     audience: normalizeUrl(audience),
     debugAuth,
+    clientId,
+    clientSecret,
   };
 }
 
@@ -39,7 +43,7 @@ function makeConfig(
  * @param env The environment variables object
  */
 export function createConfig(env: Env): Config {
-  const { AUTH0_DOMAIN, AUTH0_TENANT, MCP_SERVER_URL, MCP_AUDIENCE, NODE_ENV } = env;
+  const { AUTH0_DOMAIN, AUTH0_TENANT, MCP_SERVER_URL, MCP_AUDIENCE, NODE_ENV, MCP_CLIENT_ID, MCP_CLIENT_SECRET } = env;
 
   if (!AUTH0_DOMAIN || !AUTH0_TENANT) {
     throw new Error('AUTH0_DOMAIN and AUTH0_TENANT are required');
@@ -53,7 +57,11 @@ export function createConfig(env: Env): Config {
     throw new Error('MCP_AUDIENCE is required');
   }
 
+  if (!MCP_CLIENT_ID || !MCP_CLIENT_SECRET) {
+    throw new Error('MCP_CLIENT_ID and MCP_CLIENT_SECRET are required');
+  } 
+
   const debugAuth = NODE_ENV === 'development';
 
-  return makeConfig(AUTH0_DOMAIN, AUTH0_TENANT, MCP_SERVER_URL, MCP_AUDIENCE, debugAuth);
+  return makeConfig(AUTH0_DOMAIN, AUTH0_TENANT, MCP_SERVER_URL, MCP_AUDIENCE, debugAuth, MCP_CLIENT_ID, MCP_CLIENT_SECRET);
 }

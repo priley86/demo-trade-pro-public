@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { tool } from 'ai'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import { DemoTradeProAPIClient } from '../../utils/api-client'
 import type { Order, CreateOrderRequest } from '../../types/api'
 
@@ -68,7 +67,7 @@ export function createMCPTool(apiClient: DemoTradeProAPIClient) {
   return {
     name: 'createOrder',
     description: 'Place a new buy or sell order for stocks - DemoTradePro',
-    inputSchema: zodToJsonSchema(CreateOrderSchema),
+    inputSchema: CreateOrderSchema.shape,
     handler: (params: CreateOrderParams) => createOrderHandler(params, apiClient)
   }
 }
