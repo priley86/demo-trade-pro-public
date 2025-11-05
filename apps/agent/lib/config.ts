@@ -4,6 +4,17 @@ export const AUTH0_AUDIENCE =
 export const MCP_SERVER_URL =
   process.env.MCP_SERVER_URL ?? `http://localhost:3003`;
 
+export const MCP_SERVER_CUSTOM_API_CLIENT_ID = process.env.MCP_SERVER_CUSTOM_API_CLIENT_ID;
+export const MCP_SERVER_CUSTOM_API_CLIENT_SECRET = process.env.MCP_SERVER_CUSTOM_API_CLIENT_SECRET;
+
+if(!MCP_SERVER_CUSTOM_API_CLIENT_ID){
+  throw new Error('MCP_SERVER_CUSTOM_API_CLIENT_ID is required for MCP server to access OIDC connection.');
+}
+
+if(!MCP_SERVER_CUSTOM_API_CLIENT_SECRET){
+  throw new Error('MCP_SERVER_CUSTOM_API_CLIENT_SECRET is required for MCP server to access OIDC connection.');
+}
+
 /**
  * CORS headers to allow cross-origin requests to this endpoint
  * Configure appropriately for production

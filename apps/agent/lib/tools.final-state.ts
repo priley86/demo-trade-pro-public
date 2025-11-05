@@ -13,8 +13,10 @@ import * as GetPortfolio from "@workspace/agent-utils/tools/get-portfolio";
 // API client instance for accessing the trading platform API
 import { createAPIClient } from "@workspace/agent-utils";
 
-// OIDC access token helper
-import { getAccessTokenForConnection } from "./auth0";
+// // OIDC access token helper
+// import { getAccessTokenForConnection } from "./auth0";
+
+import { auth0CustomApiClient } from "./auth0";
 
 // Auth0 MCP server instance
 import auth0Mcp from "./auth0-mcp";
@@ -30,52 +32,76 @@ const emptyToolInputSchema = {
   // Empty object schema for tools that take no parameters
 } as const;
 
-const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
-  const token = await getAccessTokenForConnection({
-    connection: process.env.API_OIDC_CONNECTION_NAME!,
+const createDemoTradeProApiClient = (accessToken: string) => {
+  return createAPIClient(process.env.API_BASE_URL!, async () => {
+    try {
+      const token = await auth0CustomApiClient.getAccessTokenForConnection({
+        connection: process.env.API_OIDC_CONNECTION_NAME!,
+        accessToken,
+      });
+      if (!token.accessToken) {
+        throw new Error("Access token is not available in Auth0 Token Vault");
+      }
+      return token.accessToken;
+    } catch (err) {
+      console.error("Failed to get stored access token:", err);
+      throw err;
+    }
   });
-  return token;
-}); // Token provider for auth
+};
 
 /**
  * MCP tools with scope-based authorization.
  */
 export function registerTools(server: McpServer) {
-  // Create MCP tool definitions using the helper factories
-  const mcpTools = [
-    // public tools
-    GetStockPrice.createMCPTool((params) =>
-      GetStockPrice.getStockPriceHandler(params, apiClient)
-    ),
-    SearchStocks.createMCPTool((params) =>
-      SearchStocks.searchStocksHandler(params, apiClient)
-    ),
-    GetStockInfo.createMCPTool((params) =>
-      GetStockInfo.getStockInfoHandler(params, apiClient)
-    ),
+  const noop = async () => null as any;
 
-    // authenticated tools
-    GetPortfolio.createMCPTool(apiClient), // This one takes apiClient directly
+  // Create tool metadata (we'll use the actual handlers in the auth wrapper)
+  const mcpTools = [
+    {
+      meta: GetStockPrice.createMCPTool(noop),
+      handler: GetStockPrice.getStockPriceHandler,
+    },
+    {
+      meta: SearchStocks.createMCPTool(noop),
+      handler: SearchStocks.searchStocksHandler,
+    },
+    {
+      meta: GetStockInfo.createMCPTool(noop),
+      handler: GetStockInfo.getStockInfoHandler,
+    },
+    {
+      meta: GetPortfolio.createMCPTool(createDemoTradeProApiClient("")),
+      handler: GetPortfolio.getPortfolioHandler,
+    },
   ];
 
   // Register all stock market tools
   mcpTools.forEach((tool) => {
     server.registerTool(
-      tool.name,
+      tool.meta.name,
       {
-        title: tool.name,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
+        title: tool.meta.name,
+        description: tool.meta.description,
+        inputSchema: tool.meta.inputSchema,
         annotations: { readOnlyHint: true },
       },
-      async (args: any) => {
-        const result = await tool.handler(args);
-        return {
-          content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
-          ],
-        };
-      }
+      auth0Mcp.requireScopes([], async (params, { authInfo }) => {
+        try {
+          const apiClient = createDemoTradeProApiClient(authInfo.token);
+
+          const result = await tool.handler(params as any, apiClient);
+          
+          return {
+            content: [
+              { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            ],
+          };
+        } catch (err) {
+          console.log(err);
+          throw err;
+        }
+      })
     );
   });
 
@@ -90,9 +116,8 @@ export function registerTools(server: McpServer) {
     },
     auth0Mcp.requireScopes<typeof greetToolInputSchema>(
       // todo: uncomment me once tool:greet scopes added to cli / terraform scripts
-      []
+      [],
       // ["tool:greet"]
-      ,
       async (payload, { authInfo }) => {
         const name = payload.name || "World";
         const userId = authInfo.extra.sub;
