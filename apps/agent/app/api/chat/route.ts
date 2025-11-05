@@ -16,7 +16,7 @@ async function getAccessToken() {
   const tokenResult = await auth0.getAccessToken();
 
   if (!tokenResult?.token) {
-    throw new Error("Error retrieving access token for langgraph api.");
+    throw new Error("Error retrieving access token for MCP server.");
   }
 
   return tokenResult.token;
