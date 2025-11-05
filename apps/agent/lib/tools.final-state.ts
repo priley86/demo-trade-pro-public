@@ -30,7 +30,6 @@ const emptyToolInputSchema = {
   // Empty object schema for tools that take no parameters
 } as const;
 
-
 const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
   const token = await getAccessTokenForConnection({
     connection: process.env.API_OIDC_CONNECTION_NAME!,
@@ -38,18 +37,22 @@ const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
   return token;
 }); // Token provider for auth
 
-
 /**
  * MCP tools with scope-based authorization.
  */
 export function registerTools(server: McpServer) {
-  
   // Create MCP tool definitions using the helper factories
   const mcpTools = [
     // public tools
-    GetStockPrice.createMCPTool((params) => GetStockPrice.getStockPriceHandler(params, apiClient)),
-    SearchStocks.createMCPTool((params) => SearchStocks.searchStocksHandler(params, apiClient)),
-    GetStockInfo.createMCPTool((params) => GetStockInfo.getStockInfoHandler(params, apiClient)),
+    GetStockPrice.createMCPTool((params) =>
+      GetStockPrice.getStockPriceHandler(params, apiClient)
+    ),
+    SearchStocks.createMCPTool((params) =>
+      SearchStocks.searchStocksHandler(params, apiClient)
+    ),
+    GetStockInfo.createMCPTool((params) =>
+      GetStockInfo.getStockInfoHandler(params, apiClient)
+    ),
 
     // authenticated tools
     GetPortfolio.createMCPTool(apiClient), // This one takes apiClient directly
@@ -68,7 +71,9 @@ export function registerTools(server: McpServer) {
       async (args: any) => {
         const result = await tool.handler(args);
         return {
-          content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
         };
       }
     );
@@ -84,7 +89,10 @@ export function registerTools(server: McpServer) {
       annotations: { readOnlyHint: false },
     },
     auth0Mcp.requireScopes<typeof greetToolInputSchema>(
-      ["tool:greet"],
+      // todo: uncomment me once tool:greet scopes added to cli / terraform scripts
+      []
+      // ["tool:greet"]
+      ,
       async (payload, { authInfo }) => {
         const name = payload.name || "World";
         const userId = authInfo.extra.sub;
@@ -109,7 +117,9 @@ export function registerTools(server: McpServer) {
         "A tool that returns information about the authenticated user",
       annotations: { readOnlyHint: false },
     },
-    auth0Mcp.requireScopes(["tool:whoami"], async (_payload, { authInfo }) => {
+    // auth0Mcp.requireScopes(["tool:whoami"],
+    // todo: uncomment me once tool:whoami scopes added to cli / terraform scripts
+    auth0Mcp.requireScopes([], async (_payload, { authInfo }) => {
       return {
         content: [
           {
