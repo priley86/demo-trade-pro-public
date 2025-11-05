@@ -8,6 +8,10 @@ terraform {
       source  = "Mastercard/restapi"
       version = "~> 2.0.1"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9.0"
+    }
   }
 
   required_version = ">= 1.0.0"
@@ -23,8 +27,8 @@ provider "auth0" {
 # this allows terraform to use the full Management API.
 provider "restapi" {
 
-  # Configure rate limiting
-  rate_limit = 1
+  # Configure rate limiting - increased to 2 seconds between requests to avoid 429 errors
+  rate_limit = 2
 
   uri = "https://${var.auth0_domain}/api/v2/"
   write_returns_object = true

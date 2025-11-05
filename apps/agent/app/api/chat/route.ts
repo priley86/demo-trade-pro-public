@@ -3,20 +3,38 @@ import { streamText, UIMessage, convertToModelMessages, stepCountIs } from 'ai';
 import { agentTools } from './tools';
 import { auth0 } from '@/lib/auth0';
 import { experimental_createMCPClient } from 'ai';
+
+import { MCP_SERVER_URL } from '../../../lib/config';
+
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
+
+// todo: make this not include the tools from the MCP server initially... this is really the final state
+// and i'm just testing here right now ;-) 
+
+async function getAccessToken() {
+  const tokenResult = await auth0.getAccessToken();
+
+  if (!tokenResult?.token) {
+    throw new Error("Error retrieving access token for langgraph api.");
+  }
+
+  return tokenResult.token;
+}
 
 export async function POST(req: Request) {
 
   const session = await auth0.getSession();
   const user = session?.user;
+  const accessToken = await getAccessToken();
+
   console.log("Attempting to connect to MCP");
   const mcpServer = await experimental_createMCPClient({
     transport: {
       type: 'sse',
-      url: 'http://localhost:3004',
+      url: `${MCP_SERVER_URL}/sse`,
       headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     },
     name: 'mcp-server'

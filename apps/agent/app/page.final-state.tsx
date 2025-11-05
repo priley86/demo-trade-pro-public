@@ -6,7 +6,7 @@ export default auth0.withPageAuthRequired(
     const session = await auth0.getSession();
     const user = session?.user;
 
-    return <ChatClient user={user} />;
+    return <ChatClient user={user!} />;
   },
   { returnTo: "/" }
 );

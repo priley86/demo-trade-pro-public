@@ -30,7 +30,7 @@ variable "agent_callback_url" {
 variable "mcp_resource_identifier" {
   description = "Resource identifier (audience) for the MCP server"
   type        = string
-  default     = "http://localhost:3004"
+  default     = "http://localhost:3003"
 }
 
 # =============================================================================

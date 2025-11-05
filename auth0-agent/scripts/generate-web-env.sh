@@ -47,6 +47,13 @@ APP_BASE_URL=http://localhost:3003
 AUTH0_BASE_URL=http://localhost:3003
 AUTH0_ISSUER_BASE_URL=$AUTH0_ISSUER_BASE_URL
 
+# MCP Server
+AUTH0_AUDIENCE=http://localhost:3003
+MCP_SERVER_URL=http://localhost:3003
+
+# Redis for MCP session management
+REDIS_URL=redis://localhost:6379
+
 # OpenAI Configuration for AI Agent
 # TODO: Replace with your actual OpenAI API key
 OPENAI_API_KEY=your_openai_api_key_here
@@ -54,6 +61,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Upstream DemoTradePro API Configuration (from root tenant)
 API_BASE_URL=http://localhost:3001/api/ 
 API_AUDIENCE=https://api.demotradepro.example
+API_OIDC_CONNECTION_NAME=demotradepro-oidc
 
 # Agent will authenticate users and forward tokens to upstream API
 API_DEFAULT_SCOPES="openid profile email offline_access"

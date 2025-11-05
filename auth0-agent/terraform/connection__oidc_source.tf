@@ -28,8 +28,16 @@ resource "auth0_connection" "demotradepro_oidc" {
    }
 }
 
+# Add delay to avoid rate limiting
+resource "time_sleep" "wait_after_connection" {
+  depends_on = [auth0_connection.demotradepro_oidc]
+  
+  create_duration = "2s"
+}
+
 # Enable the connection for the agent client
 resource "auth0_connection_clients" "demotradepro_oidc_clients" {
+   depends_on = [time_sleep.wait_after_connection]
    connection_id = auth0_connection.demotradepro_oidc.id
    enabled_clients = [auth0_client.demotradepro_agent.client_id]
 }

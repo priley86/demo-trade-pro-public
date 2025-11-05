@@ -7,6 +7,8 @@ import { agentTools } from './tools';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+// todo: update me to final state of using new MCP server for tools...
+
 export async function POST(req: Request) {
   // Verify user is authenticated
   const session = await auth0.getSession();

@@ -74,7 +74,7 @@ Configure the Auth0 CLI and run the initialization script:
 
 ```bash
 # Login to Auth0 CLI
-auth0 login
+auth0 login --scopes create:client_grants
 
 # Select your newly created tenant when prompted
 # Navigate to agent directory and run init script
@@ -125,7 +125,7 @@ At this point we need to connect the DemoTradePro to our Auth0 Tenant, we will d
        ![Auth0 Enterprise Connections](/images/enterprise-connection.png)
     2. Create a new OIDC connection pointing to the hosted DemoTradePro tenant, name it "demo-trade-pro", and paste the url <PlatformLink type="auth" path="/.well-known/openid-configuration">here</PlatformLink>
        ![Auth0 Enterprise Connections](/images/new-oidc-connection.png)
-    3. Copy Paste the ClientID and Client Secret you obtained from the Developer section of the Demo Trade Pro Platform
+    3. Copy Paste the ClientID and Client Secret you obtained from the Developer section of the Demo Trade Pro Platform (see [Demo Trade Pro Create OAuth OIDC Client page](https://workshop-trade-app.auth101.dev/developer) if you haven't already).
        ![Auth0 Enterprise Connections](/images/oidc-connection-filled.png)
     4. Scroll down and click "Create"
   </TabsContent>

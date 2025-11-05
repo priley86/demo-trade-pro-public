@@ -14,7 +14,7 @@ cd "$SCRIPT_DIR"
 echo ""
 echo "Step 1: Generate Auth0 Management Client..."
 echo "-------------------------------------------"
-./scripts/generate-auth-management-client.sh
+#./scripts/generate-auth-management-client.sh
 
 echo ""
 echo "Step 2: Initialize Terraform..."

@@ -4,10 +4,17 @@
 # Uses terraform-provider-restapi for proper HTTP resource management.
 # Should be removed once Auth0 Terraform supports all Management API v2 fields.
 
+# Add delay to avoid rate limiting
+resource "time_sleep" "wait_before_mcp_client" {
+  depends_on = [auth0_resource_server.mcp_server]
+  
+  create_duration = "2s"
+}
+
 # Create Auth0 client with resource_server_identifier using REST API
 # This replaces the limited Auth0 Terraform provider with full Management API access
 resource "restapi_object" "mcp_server_client" {
-  depends_on = [auth0_resource_server.mcp_server]
+  depends_on = [time_sleep.wait_before_mcp_client]
   
   provider = restapi
   path     = "/clients"

@@ -20,14 +20,23 @@ resource "auth0_resource_server" "mcp_server" {
   skip_consent_for_verifiable_first_party_clients = true
 }
 
+# Add delay to avoid rate limiting
+resource "time_sleep" "wait_after_resource_server" {
+  depends_on = [auth0_resource_server.mcp_server]
+  
+  create_duration = "2s"
+}
+
 # Define individual scopes using separate resources
 resource "auth0_resource_server_scope" "mcp_trade_read" {
+  depends_on = [time_sleep.wait_after_resource_server]
   resource_server_identifier = auth0_resource_server.mcp_server.identifier
   scope                      = "trade:read"
   description               = "View orders and trading information via MCP"
 }
 
 resource "auth0_resource_server_scope" "mcp_trade_write" {
+  depends_on = [auth0_resource_server_scope.mcp_trade_read]
   resource_server_identifier = auth0_resource_server.mcp_server.identifier
   scope                      = "trade:write"
   description               = "Create and manage orders via MCP"
@@ -37,6 +46,7 @@ resource "auth0_resource_server_scope" "mcp_trade_write" {
 # resource__mcp_server--compat.tf
 
 resource "auth0_resource_server_scope" "mcp_portfolio_read" {
+  depends_on = [auth0_resource_server_scope.mcp_trade_write]
   resource_server_identifier = auth0_resource_server.mcp_server.identifier
   scope                      = "portfolio:read"
   description               = "View portfolio information via MCP"

@@ -49,7 +49,7 @@ output "mcp_audience" {
 }
 
 output "mcp_server_url" {
-  value = "http://localhost:3004"
+  value = "http://localhost:3003"
   description = "MCP server URL for development"
 }
 
