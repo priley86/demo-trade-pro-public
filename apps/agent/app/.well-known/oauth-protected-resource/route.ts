@@ -1,42 +1,59 @@
 /**
  * OAuth 2.0 Protected Resource Metadata endpoint
  */
-import { ProtectedResourceMetadataBuilder } from '@auth0/auth0-api-js';
+import {
+  generateProtectedResourceMetadata,
+  metadataCorsOptionsRequestHandler,
+} from "mcp-handler";
 
-import { AUTH0_DOMAIN, MCP_SERVER_URL, corsHeaders } from '../../../lib/config';
+import { AUTH0_DOMAIN, corsHeaders } from "../../../lib/config";
 
-const handler = () => {
-  const metadata = new ProtectedResourceMetadataBuilder(MCP_SERVER_URL, [
-    `https://${AUTH0_DOMAIN}/`,
-  ])
-    .withJwksUri(`https://${AUTH0_DOMAIN}/.well-known/jwks.json`)
-    .withScopesSupported([
-      // OIDC scopes
-      'openid',
-      'profile',
-      'email',
+// Define supported scopes for this MCP server
+const SUPPORTED_SCOPES = [
+  // OIDC scopes
+  "openid",
+  "profile",
+  "email",
+  // tool scopes
+  "tool:greet",
+  "tool:whoami",
+];
 
-      // tool scopes
-      'tool:greet',
-      'tool:whoami',
-    ])
-    .build();
+/** 
+  Create custom handler with scopes support
+  based on protectedResourceHandler mcp-handler helper:
+  https://github.com/vercel/mcp-handler/blob/main/src/auth/auth-metadata.ts#L22
+ */
+const handler = (req: Request) => {
+  const resourceUrl = new URL(req.url);
 
-  return new Response(JSON.stringify(metadata.toJSON()), {
+  // Remove the .well-known path to get the resource identifier
+  resourceUrl.pathname = resourceUrl.pathname.replace(
+    /^\/\.well-known\/[^\/]+/,
+    ""
+  );
+
+  const resource =
+    resourceUrl.pathname === "/"
+      ? resourceUrl.toString().replace(/\/$/, "")
+      : resourceUrl.toString();
+
+  const metadata = generateProtectedResourceMetadata({
+    authServerUrls: [`https://${AUTH0_DOMAIN}/`],
+    resourceUrl: resource,
+    additionalMetadata: {
+      scopes_supported: SUPPORTED_SCOPES,
+      // Optional: add other metadata fields
+      jwks_uri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
+    },
+  });
+
+  return new Response(JSON.stringify(metadata), {
     headers: corsHeaders,
   });
 };
 
-// Create the OPTIONS handler for CORS preflight requests
-// This alllows browsers to make cross-origin requests to this endpoint
-const optionsHandler = () => {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-};
+// Use the built-in CORS handler
+const optionsHandler = metadataCorsOptionsRequestHandler();
 
-// Export the handlers using Nextjs App router naming convention
-// GET: Returns the protected resource metadata JSON
-// OPTIONS: Handles CORS preflight requests
 export { handler as GET, optionsHandler as OPTIONS };
