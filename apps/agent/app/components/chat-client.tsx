@@ -1,23 +1,32 @@
-'use client';
+"use client";
 
-import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
-import { Send, Bot, User, TrendingUp, LogOut } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { Input } from '@workspace/ui/components/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
-import { Badge } from '@workspace/ui/components/badge';
-import { cn } from '@workspace/ui/lib/utils';
-import { User as Auth0User } from '@auth0/nextjs-auth0/types';
+import { useChat } from "@ai-sdk/react";
+import { useMemo, useState } from "react";
+import { Send, Bot, User, TrendingUp, LogOut, CheckCircle } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
+import { User as Auth0User } from "@auth0/nextjs-auth0/types";
 
 export default function ChatClient({ user }: { user: Auth0User | null }) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat();
+
+  const isOidcConneceted = useMemo(() => {
+    return user?.sub?.includes("oidc|");
+  }, [user]);
 
   const suggestedQuestions = [
     "What's the difference between stocks and bonds?",
     "How do I evaluate a company's financial health?",
-    "What are the basics of stock market investing?"
+    "What are the basics of stock market investing?",
   ];
 
   return (
@@ -31,17 +40,34 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
           </div>
           <div className="flex items-center justify-center gap-4">
             <p className="text-muted-foreground">
-              Welcome! Your intelligent trading assistant for fictional companies.
+              Welcome! Your intelligent trading assistant for fictional
+              companies.
             </p>
             <div className="flex items-center gap-3">
               {user && (
-                <a 
-                  href="/auth/logout" 
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
-                >
-                  <LogOut className="h-3 w-3" />
-                  Sign Out
-                </a>
+                <>
+                  {!isOidcConneceted && (
+                    <a
+                      href="/auth/login?connection=demotradepro-oidc"
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                    >
+                      Connect to DemoTrade Pro
+                    </a>
+                  )}
+                  {isOidcConneceted && (
+                    <span className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Connected to DemoTrade Pro
+                    </span>
+                  )}
+                  <a
+                    href="/auth/logout"
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                  >
+                    <LogOut className="h-3 w-3" />
+                    Sign Out
+                  </a>
+                </>
               )}
             </div>
           </div>
@@ -55,7 +81,7 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
               Trading Assistant
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="flex-1 overflow-y-auto">
             <div className="space-y-4">
               {messages.length === 0 && (
@@ -63,9 +89,10 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
                   <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />
                   <h3 className="text-lg font-medium mb-2">Hello there!</h3>
                   <p className="text-muted-foreground mb-6">
-                    I can help you learn about trading concepts and strategies. Try asking about our fictional companies or trading basics.
+                    I can help you learn about trading concepts and strategies.
+                    Try asking about our fictional companies or trading basics.
                   </p>
-                  
+
                   <div className="flex flex-wrap gap-2 justify-center">
                     {suggestedQuestions.map((question, index) => (
                       <Badge
@@ -80,40 +107,50 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
                   </div>
                 </div>
               )}
-              
+
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  <div className={`flex gap-3 max-w-[80%] ${
-                    message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                  }`}>
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                      message.role === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    )}>
-                      {message.role === 'user' ? (
+                  <div
+                    className={`flex gap-3 max-w-[80%] ${
+                      message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    }`}
+                  >
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {message.role === "user" ? (
                         <User className="h-4 w-4" />
                       ) : (
                         <Bot className="h-4 w-4" />
                       )}
                     </div>
-                    <div className={cn(
-                      "rounded-lg p-3",
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    )}>
+                    <div
+                      className={cn(
+                        "rounded-lg p-3",
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.parts.map((part, i) => {
                           switch (part.type) {
-                            case 'text':
-                              return <span key={`${message.id}-${i}`}>{part.text}</span>;
+                            case "text":
+                              return (
+                                <span key={`${message.id}-${i}`}>
+                                  {part.text}
+                                </span>
+                              );
                             default:
                               return null;
                           }
@@ -125,14 +162,14 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
               ))}
             </div>
           </CardContent>
-          
+
           <div className="border-t p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 if (input.trim()) {
                   sendMessage({ text: input });
-                  setInput('');
+                  setInput("");
                 }
               }}
               className="flex gap-2"
@@ -143,8 +180,8 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
                 placeholder="Ask about trading, stocks, or market concepts..."
                 className="flex-1"
               />
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={!input.trim()}
                 className="flex items-center gap-2"
               >
@@ -153,13 +190,13 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
             </form>
           </div>
         </Card>
-        
+
         {/* Footer */}
         <div className="text-center mt-4 text-sm text-muted-foreground">
           <p>
-            This is a demo trading assistant for workshop purposes. 
-            Companies like Wayne Enterprises and Stark Industries are fictional. 
-            All trading involves risk.
+            This is a demo trading assistant for workshop purposes. Companies
+            like Wayne Enterprises and Stark Industries are fictional. All
+            trading involves risk.
           </p>
         </div>
       </div>

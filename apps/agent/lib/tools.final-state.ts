@@ -39,9 +39,14 @@ const createDemoTradeProApiClient = (accessToken: string) => {
         connection: process.env.API_OIDC_CONNECTION_NAME!,
         accessToken,
       });
+
       if (!token.accessToken) {
         throw new Error("Access token is not available in Auth0 Token Vault");
       }
+      // console.log(
+      //   "access token from demo trade pro granted!!:",
+      //   token.accessToken
+      // );
       return token.accessToken;
     } catch (err) {
       console.error("Failed to get stored access token:", err);
@@ -91,7 +96,7 @@ export function registerTools(server: McpServer) {
           const apiClient = createDemoTradeProApiClient(authInfo.token);
 
           const result = await tool.handler(params as any, apiClient);
-          
+
           return {
             content: [
               { type: "text" as const, text: JSON.stringify(result, null, 2) },
