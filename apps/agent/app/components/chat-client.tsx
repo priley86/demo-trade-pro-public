@@ -35,12 +35,13 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
             </p>
             <div className="flex items-center gap-3">
               {user && (
-                <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                  <a href="/auth/logout" className="flex items-center gap-1">
-                    <LogOut className="h-3 w-3" />
-                    Sign Out
-                  </a>
-                </button>
+                <a 
+                  href="/auth/logout" 
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                >
+                  <LogOut className="h-3 w-3" />
+                  Sign Out
+                </a>
               )}
             </div>
           </div>

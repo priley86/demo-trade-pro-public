@@ -4,7 +4,7 @@ import { ApiClient } from "@auth0/auth0-api-js";
 
 import { AUTH0_AUDIENCE, AUTH0_DOMAIN, MCP_SERVER_CUSTOM_API_CLIENT_ID, MCP_SERVER_CUSTOM_API_CLIENT_SECRET } from "./config";
 
-// Server-side Auth0 client instance
+// Server-side agent Auth0 client instance
 export const auth0 = new Auth0Client({
   authorizationParameters: {
     audience: AUTH0_AUDIENCE,
@@ -12,6 +12,7 @@ export const auth0 = new Auth0Client({
   }
 });
 
+// MCP Server Auth0 Custom API client instance
 export const auth0CustomApiClient = new ApiClient({
   domain: AUTH0_DOMAIN,
   audience: AUTH0_AUDIENCE,
