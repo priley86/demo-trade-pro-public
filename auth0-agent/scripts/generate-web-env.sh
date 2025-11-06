@@ -33,6 +33,8 @@ AGENT_CLIENT_ID=$(terraform output -raw agent_client_id)
 AGENT_CLIENT_SECRET=$(terraform output -raw agent_client_secret)
 AUTH0_DOMAIN=$(terraform output -raw auth0_domain)
 AUTH0_ISSUER_BASE_URL=$(terraform output -raw auth0_issuer_base_url)
+MCP_CLIENT_ID=$(terraform output -raw mcp_client_id)
+MCP_CLIENT_SECRET=$(terraform output -raw mcp_client_secret)
 
 # For the stock trading workshop, we'll use the standard client secret approach
 # Remove JWE complexity for now
@@ -50,6 +52,8 @@ AUTH0_ISSUER_BASE_URL=$AUTH0_ISSUER_BASE_URL
 # MCP Server
 AUTH0_AUDIENCE=http://localhost:3003
 MCP_SERVER_URL=http://localhost:3003
+MCP_SERVER_CUSTOM_API_CLIENT_ID=$MCP_CLIENT_ID
+MCP_SERVER_CUSTOM_API_CLIENT_SECRET=$MCP_CLIENT_SECRET
 
 # Redis for MCP session management
 REDIS_URL=redis://localhost:6379
@@ -59,7 +63,7 @@ REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your_openai_api_key_here
 
 # Upstream DemoTradePro API Configuration (from root tenant)
-API_BASE_URL=http://localhost:3001/api/ 
+API_BASE_URL=https://workshop-trade-app.auth101.dev/
 API_AUDIENCE=https://api.demotradepro.example
 API_OIDC_CONNECTION_NAME=demotradepro-oidc
 

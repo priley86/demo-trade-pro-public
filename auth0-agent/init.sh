@@ -26,7 +26,7 @@ echo ""
 echo "Step 3: Apply Terraform Configuration..."
 echo "---------------------------------------"
 terraform init
-terraform apply -auto-approve
+terraform apply -auto-approve -parallelism=1
 
 echo ""
 echo "Step 4: Generate Agent Environment File..."

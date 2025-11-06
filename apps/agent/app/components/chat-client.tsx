@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Send, Bot, User, TrendingUp, LogOut, CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -18,10 +18,6 @@ import { User as Auth0User } from "@auth0/nextjs-auth0/types";
 export default function ChatClient({ user }: { user: Auth0User | null }) {
   const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat();
-
-  const isOidcConneceted = useMemo(() => {
-    return user?.sub?.includes("oidc|");
-  }, [user]);
 
   const suggestedQuestions = [
     "What's the difference between stocks and bonds?",
@@ -46,20 +42,6 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
             <div className="flex items-center gap-3">
               {user && (
                 <>
-                  {!isOidcConneceted && (
-                    <a
-                      href="/auth/login?connection=demotradepro-oidc"
-                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
-                    >
-                      Connect to DemoTrade Pro
-                    </a>
-                  )}
-                  {isOidcConneceted && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3" />
-                      Connected to DemoTrade Pro
-                    </span>
-                  )}
                   <a
                     href="/auth/logout"
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"

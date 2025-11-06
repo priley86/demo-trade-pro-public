@@ -35,11 +35,11 @@ resource "time_sleep" "wait_after_connection" {
   create_duration = "2s"
 }
 
-# Enable the connection for the agent client
+# Enable the connection for the agent client and the mcp custom api client
 resource "auth0_connection_clients" "demotradepro_oidc_clients" {
-   depends_on = [time_sleep.wait_after_connection]
+   depends_on = [time_sleep.wait_after_connection, restapi_object.mcp_server_client]
    connection_id = auth0_connection.demotradepro_oidc.id
-   enabled_clients = [auth0_client.demotradepro_agent.client_id]
+   enabled_clients = [auth0_client.demotradepro_agent.client_id, restapi_object.mcp_server_client.id]
 }
 
 # Output the connection details for reference
