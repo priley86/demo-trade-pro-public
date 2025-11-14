@@ -1,15 +1,26 @@
 /**
  * OpenID Connect Discovery endpoint
- * 
+ *
  * This endpoint provides OpenID Connect metadata for clients that expect
  * the standard OIDC discovery endpoint at /.well-known/openid-configuration
- * 
+ *
  * Many OAuth/OIDC clients (including ChatGPT) will try this endpoint first
  * before falling back to /.well-known/oauth-authorization-server
  */
 import { discoverAuthorizationServerMetadata } from "@modelcontextprotocol/sdk/client/auth.js";
 
 import { AUTH0_DOMAIN, corsHeaders } from "../../../lib/config";
+
+// Define supported scopes for this MCP server
+const SUPPORTED_SCOPES = [
+  // OIDC scopes
+  "openid",
+  "profile",
+  "email",
+  // tool scopes
+  "tool:greet",
+  "tool:whoami",
+];
 
 const handler: (req: Request) => Promise<Response> = async () => {
   // Fetch OAuth metadata from Auth0
@@ -18,11 +29,17 @@ const handler: (req: Request) => Promise<Response> = async () => {
     new URL(`https://${AUTH0_DOMAIN}`).toString()
   );
 
-  return new Response(JSON.stringify(oauthMetadata), { 
+  // Enhance the metadata with our supported scopes
+  const enhancedMetadata = {
+    ...oauthMetadata,
+    scopes_supported: SUPPORTED_SCOPES,
+  };
+
+  return new Response(JSON.stringify(enhancedMetadata), {
     headers: {
       ...corsHeaders,
-      'Content-Type': 'application/json',
-    } 
+      "Content-Type": "application/json",
+    },
   });
 };
 
@@ -31,7 +48,7 @@ const handler: (req: Request) => Promise<Response> = async () => {
 const optionsHandler = () => {
   return new Response(null, {
     status: 200,
-    headers: corsHeaders
+    headers: corsHeaders,
   });
 };
 
