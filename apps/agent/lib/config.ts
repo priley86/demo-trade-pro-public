@@ -2,7 +2,7 @@ const isBuildTime = process.env.npm_lifecycle_event?.includes("build") ?? false;
 
 export const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN ?? "your-tenant.auth0.com";
 export const AUTH0_AUDIENCE =
-  process.env.AUTH0_AUDIENCE ?? "http://localhost:3003";
+  process.env.AUTH0_AUDIENCE ?? "http://localhost:3003/mcp";
 export const MCP_SERVER_URL =
   process.env.MCP_SERVER_URL ?? `http://localhost:3003`;
 

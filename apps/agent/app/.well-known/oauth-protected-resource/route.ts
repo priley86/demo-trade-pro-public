@@ -40,7 +40,7 @@ const handler = (req: Request) => {
 
   const metadata = generateProtectedResourceMetadata({
     authServerUrls: [`https://${AUTH0_DOMAIN}/`],
-    resourceUrl: resource,
+    resourceUrl: `${resource}/mcp`,
     additionalMetadata: {
       scopes_supported: SUPPORTED_SCOPES,
       // Optional: add other metadata fields

@@ -11,6 +11,9 @@ echo "======================================="
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Source shared configuration
+source "$SCRIPT_DIR/config.sh"
+
 echo ""
 echo "Step 1: Generate Auth0 Management Client..."
 echo "-------------------------------------------"
@@ -43,7 +46,7 @@ echo "=========================================="
 echo ""
 echo "Next Steps:"
 echo "1. Start the agent app: cd ../apps/agent && pnpm dev"
-echo "2. Visit http://localhost:3003 to test agent"
+echo "2. Visit $AGENT_BASE_URL to test agent"
 echo "3. Agent will not be able to do anything at this stage"
 echo ""
 echo "📝 To make changes to Auth0 config, edit the .tf files and run:"

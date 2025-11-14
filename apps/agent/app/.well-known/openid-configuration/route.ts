@@ -18,8 +18,8 @@ const SUPPORTED_SCOPES = [
   "profile",
   "email",
   // tool scopes
-  // "tool:greet",
-  // "tool:whoami",
+  "tool:greet",
+  "tool:whoami",
 ];
 
 const handler: (req: Request) => Promise<Response> = async () => {

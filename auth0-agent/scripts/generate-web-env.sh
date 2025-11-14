@@ -8,6 +8,9 @@ AUTH0_DIR="$(dirname "$SCRIPT_DIR")"
 AGENT_APP_DIR="$AUTH0_DIR/../apps/agent"
 WEB_ENV_FILE="$AGENT_APP_DIR/.env"
 
+# Source shared configuration
+source "$AUTH0_DIR/config.sh"
+
 # Ensure the agent app directory exists
 if [ ! -d "$AGENT_APP_DIR" ]; then
   echo "Error: Agent app directory not found at $AGENT_APP_DIR"
@@ -45,13 +48,13 @@ AUTH0_DOMAIN=$AUTH0_DOMAIN
 AUTH0_CLIENT_ID=$AGENT_CLIENT_ID
 AUTH0_CLIENT_SECRET=$AGENT_CLIENT_SECRET
 AUTH0_SECRET=$AUTH0_SECRET
-APP_BASE_URL=http://localhost:3003
-AUTH0_BASE_URL=http://localhost:3003
+APP_BASE_URL=$AGENT_BASE_URL
+AUTH0_BASE_URL=$AGENT_BASE_URL
 AUTH0_ISSUER_BASE_URL=$AUTH0_ISSUER_BASE_URL
 
 # MCP Server
-AUTH0_AUDIENCE=http://localhost:3003
-MCP_SERVER_URL=http://localhost:3003
+AUTH0_AUDIENCE=$AGENT_MCP_RESOURCE_IDENTIFIER
+MCP_SERVER_URL=$AGENT_MCP_SERVER_URL
 MCP_SERVER_CUSTOM_API_CLIENT_ID=$MCP_CLIENT_ID
 MCP_SERVER_CUSTOM_API_CLIENT_SECRET=$MCP_CLIENT_SECRET
 
@@ -76,7 +79,7 @@ echo ""
 echo "✅ Environment variables configured for DemoTradePro Agent:"
 echo "  - AUTH0_DOMAIN: $AUTH0_DOMAIN"
 echo "  - AUTH0_CLIENT_ID: $AGENT_CLIENT_ID"
-echo "  - AUTH0_BASE_URL: http://localhost:3003"
+echo "  - AUTH0_BASE_URL: $AGENT_BASE_URL"
 echo "  - UPSTREAM_API: http://localhost:3001/api/"
 echo ""
 echo "🔐 Authentication Method: Standard client_secret (Auth0 Next.js SDK v4.9+)"

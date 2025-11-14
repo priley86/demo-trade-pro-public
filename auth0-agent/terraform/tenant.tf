@@ -2,6 +2,9 @@
 # Configures tenant-wide settings including dynamic client registration
 
 resource "auth0_tenant" "main" {
+  # Ensure MCP resource server is created before setting it as default audience
+  depends_on = [auth0_resource_server.mcp_server]
+  
   # Dynamic Client Registration
   # This allows MCP clients and other services to register themselves dynamically
   flags {

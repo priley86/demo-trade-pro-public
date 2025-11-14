@@ -49,7 +49,7 @@ output "mcp_audience" {
 }
 
 output "mcp_server_url" {
-  value = "http://localhost:3003"
+  value = var.agent_base_url
   description = "MCP server URL for development"
 }
 
