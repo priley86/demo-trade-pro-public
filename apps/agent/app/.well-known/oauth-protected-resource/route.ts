@@ -11,9 +11,9 @@ import { AUTH0_DOMAIN, corsHeaders } from "../../../lib/config";
 // Define supported scopes for this MCP server
 const SUPPORTED_SCOPES = [
   // OIDC scopes
-  "openid",
-  "profile",
-  "email",
+  // "openid",
+  // "profile",
+  // "email",
   // tool scopes
   "tool:greet",
   "tool:whoami",
