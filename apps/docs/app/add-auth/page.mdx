@@ -116,6 +116,10 @@ At this point we need to connect the DemoTradePro to our Auth0 Tenant, we will d
     cd auth0-agent
     ./add-oidc-connection.sh
     ```
+
+    **Note:** At the time of this writing, our Terraform scripts do not yet support two steps around enabling Token Vault grants for your **StockTrade** application and your **_demotradepro-oidc_** OIDC connection, which you can apply manually in the Auth0 Dashboard after Terraform scripts have completed by doing the following:
+    1. Navigate to **Applications -> Applications** and select your **StockTrade** Regular Web application. Open the **Settings** tab and scroll to the bottom of the page to the **Advanced Settings**. Open the expander and select the **Grant Types** tab. Here you can enable the **Token Vault** and **Client Initiated Backchannel Authentication** grant types for your application.
+    2. Navigate to **Authentication -> Enterprise** and select **OpenID Connect**. Next select your **demotradepro-oidc** connection open the **Settings** tab. Scroll to the bottom and the **Advanced** section. Here you can ensure that Token Vault is enabled for the connection by enabling the **Enable Token Vault** toggle.  
   </TabsContent>
   
   <TabsContent value="manual" className="space-y-4">
