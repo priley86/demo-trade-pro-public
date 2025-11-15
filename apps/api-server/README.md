@@ -5,7 +5,7 @@ A demo stock trading API built with Node.js, TypeScript, Hono, and PostgreSQL us
 ## Features
 
 - 📈 Stock price tracking with fictional companies (WAYNE, STARK, LEX, OSC)
-- 💹 Real-time price generation for demo purposes  
+- 💹 Real-time price generation for demo purposes
 - 📊 Order management system (BUY/SELL)
 - 🗄️ PostgreSQL database with Drizzle ORM
 - 🚀 Deployed on Vercel with Hono framework
@@ -13,18 +13,23 @@ A demo stock trading API built with Node.js, TypeScript, Hono, and PostgreSQL us
 ## Quick Start
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Set up database:**
+
    ```bash
    # Copy environment file
    cp .env.example .env
-   
+
    # Start PostgreSQL (from project root)
    docker-compose up -d
-   
+
+   # Push database migrations
+   pnpm run db:push
+
    # Seed the database
    pnpm run db:seed
    ```
@@ -47,6 +52,7 @@ A demo stock trading API built with Node.js, TypeScript, Hono, and PostgreSQL us
 ## Testing
 
 Run the test script to verify all endpoints:
+
 ```bash
 ./test_api.sh
 ```

@@ -67,10 +67,11 @@ export function registerTools(server: McpServer) {
       meta: GetStockPrice.createMCPTool(noop),
       handler: GetStockPrice.getStockPriceHandler,
     },
-    {
-      meta: SearchStocks.createMCPTool(noop),
-      handler: SearchStocks.searchStocksHandler,
-    },
+    // the api this tool calls does not appear to be implemented and can likely be removed
+    // {
+    //   meta: SearchStocks.createMCPTool(noop),
+    //   handler: SearchStocks.searchStocksHandler,
+    // },
     {
       meta: GetStockInfo.createMCPTool(noop),
       handler: GetStockInfo.getStockInfoHandler,

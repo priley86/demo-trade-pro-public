@@ -24,7 +24,7 @@ resource "auth0_resource_server" "mcp_server" {
 resource "time_sleep" "wait_after_resource_server" {
   depends_on = [auth0_resource_server.mcp_server]
   
-  create_duration = "2s"
+  create_duration = "3s"
 }
 
 # Define individual scopes using separate resources

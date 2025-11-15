@@ -4,11 +4,11 @@
 # Uses terraform-provider-restapi for proper HTTP resource management.
 # Should be removed once Auth0 Terraform supports all Management API v2 fields.
 
-# Add delay to avoid rate limiting
+# Add delay to avoid rate limiting - wait for all scopes to be created first
 resource "time_sleep" "wait_before_mcp_client" {
-  depends_on = [auth0_resource_server.mcp_server]
+  depends_on = [auth0_resource_server_scope.mcp_portfolio_read]
   
-  create_duration = "2s"
+  create_duration = "3s"
 }
 
 # Create Auth0 client with resource_server_identifier using REST API

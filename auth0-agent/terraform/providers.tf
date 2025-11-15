@@ -27,8 +27,8 @@ provider "auth0" {
 # this allows terraform to use the full Management API.
 provider "restapi" {
 
-  # Configure rate limiting - increased to 2 seconds between requests to avoid 429 errors
-  rate_limit = 2
+  # Configure rate limiting - increased to 3 seconds between requests to avoid 429 errors
+  rate_limit = 3
 
   uri = "https://${var.auth0_domain}/api/v2/"
   write_returns_object = true

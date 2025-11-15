@@ -1,5 +1,14 @@
 # OIDC Connection Resource
+# Add delay to avoid rate limiting - create connection after agent client is created
+resource "time_sleep" "wait_before_connection" {
+  depends_on = [auth0_client.demotradepro_agent]
+  
+  create_duration = "3s"
+}
+
 resource "auth0_connection" "demotradepro_oidc" {
+   depends_on = [time_sleep.wait_before_connection]
+   
    name           = var.oidc_connection_name
    display_name   = "DemoTradePro OIDC"
    strategy       = "oidc"
@@ -32,7 +41,7 @@ resource "auth0_connection" "demotradepro_oidc" {
 resource "time_sleep" "wait_after_connection" {
   depends_on = [auth0_connection.demotradepro_oidc]
   
-  create_duration = "2s"
+  create_duration = "3s"
 }
 
 # Enable the connection for the agent client and the mcp custom api client
