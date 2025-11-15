@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import { DocsNav } from "./docs-nav"
+import { usePathname } from "next/navigation";
+import { DocsNav } from "./docs-nav";
 
 const navigationItems = [
   { title: "Overview", href: "/" },
@@ -9,18 +9,19 @@ const navigationItems = [
   { title: "Add Public Tools", href: "/add-tools" },
   { title: "Add Authentication", href: "/add-auth" },
   { title: "Add Portfolio Tools", href: "/add-authenticated-tools" },
-  // For our workshop in berkeley disable the mcp-server part for now
-  // { title: "🔒 Token Vault Deep-Dive", href: "/token-vault" },
+  { title: "Async Auth", href: "/async-auth" },
+  { title: "Setup MCP Handlers", href: "/setup-mcp" },
+  { title: "Bonus: Native AI Tools", href: "/native-ai-tools" },
   // { title: "⚡ MCP Integration", href: "/mcp" },
-]
+];
 
 export function DocsNavigation() {
-  const pathname = usePathname()
-  
-  const navItemsWithActive = navigationItems.map(item => ({
-    ...item,
-    isActive: pathname === item.href
-  }))
+  const pathname = usePathname();
 
-  return <DocsNav items={navItemsWithActive} />
+  const navItemsWithActive = navigationItems.map((item) => ({
+    ...item,
+    isActive: pathname === item.href,
+  }));
+
+  return <DocsNav items={navItemsWithActive} />;
 }

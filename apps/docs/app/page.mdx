@@ -1,44 +1,49 @@
 # Welcome
 
-Hello Workshop Atendee, or Internet User, 
+Hello Workshop Atendee, or Internet User,
 
-<ExternalLink href="https://auth0.com">Auth0</ExternalLink> is a Developer Platform, and we provide tooling so developers and companies can build tools we all love and use everyday, securely. 
+<ExternalLink href="https://auth0.com">Auth0</ExternalLink> is a Developer
+Platform, and we provide tooling so developers and companies can build tools we
+all love and use everyday, securely.
 
 In this workshop, you'll build an AI Agent, AI-native service that can be easily integrated into various AI workflows. Complete with an Agent, and MCP Server, all secured by Auth0.
 
-## Story 
+## Story
 
-DemoTradePro Corp offers a fictional Stock Trading for fictional universes. Due to the increasing demand in AI Agents, and Agentic web they have determined that they must 
+DemoTradePro Corp offers a fictional Stock Trading for fictional universes. Due to the increasing demand in AI Agents, and Agentic web they have determined that they must find a way to expose their stock trading platform in more convenient ways to human & non-human identities, but only with proper authentication and authorization always keeping humans-in-the-loop.
 
-### Existing Components 
+### Existing Components
 
-For the purpose of this workshop we will use shared services that are provided to us, these mimic how companies have deployed applications today
+For the purpose of this workshop we will use shared services that are provided to us, these mimic how companies have deployed applications today:
 
-* <PlatformLink type="app">Web Application</PlatformLink> this web application itself that end-users can use.
-* <PlatformLink type="api">API Server</PlatformLink> this API Server hosts the business logic for the api.
-* <PlatformLink type="auth">Identity Provider</PlatformLink> this is the Identity Provider for Demo Trade Pro services
+- <ExternalLink href="https://workshop-trade-app.auth101.dev/" type="app">DemoTradePro Web Application</ExternalLink> -
+  this is a stock trading web application that end-users can use to trade stocks and that developers can use to create OIDC clients (allowing API access).
+- <strong>Stock API</strong> - this API Server hosts the business logic for the Stock Trading API and is accessible to the web application and your external API clients.
+- <PlatformLink type="auth">Identity Provider</PlatformLink> - <ExternalLink href="https://auth0.com">Auth0</ExternalLink> is the
+  Identity Provider for your agent clients and APIs, as well as the core Demo Trade Pro services.
 
-Before we begin, please make sure you visit <PlatformLink type="app">Web Application</PlatformLink> and create an account. We will leverage this account throughout the workshop as your "Demo Trade Pro" account, the agent will get delegated access to this account.
+Before we begin, please make sure you visit <ExternalLink href="https://workshop-trade-app.auth101.dev/" type="app">DemoTradePro Web Application</ExternalLink> and create an account. We will leverage this account throughout the workshop as your "Demo Trade Pro" account; the agent will get delegated access to this account.
 
 For extra credits, you may wish to make a few trades in the web application, so that we can see the portfolio in action.
 
-## Repeatable Pattern
+## Repeatable Patterns towards an AI Native Platform 
 
-You'll learn a **repeatable pattern** that can be applied to any API or service, and existing apps weather or not 
+You'll learn how to apply a **repeatable pattern** that can be applied to any API or service, whether they are existing apps & services or you are creating them from scratch.
 
-1. **Start with a basic chatbot** - Simple AI conversation interface
-2. **Add public tools** - Connect to DemoTradePRO API Endpoints that don't require authentication
-3. **Add user authentication** - Make the agent aware of who's using it
-4. **Add authenticated tools** - Access user-specific, securely
-5. **Package as <ExternalLink href="https://modelcontextprotocol.io">MCP Server</ExternalLink>** - Wrap everything into a reusable component which can also be used by <ExternalLink href="https://claude.ai">Claude</ExternalLink>, <ExternalLink href="https://cursor.sh">Cursor</ExternalLink> or any AI Agent.
+1. **Start with a basic chatbot** - we'll first build a Simple AI conversation interface.
+2. **Add public tools** - Connect to DemoTradePRO API Endpoints that don't require authentication.
+3. **Add user authentication** - Make the agent aware of who's using it.
+4. **Add authenticated tools** - Access user-specific context & data, whether internally or externally exposed, in a safe & secure way.
+5. **Package as an <ExternalLink href="https://modelcontextprotocol.io">MCP Server</ExternalLink>** - Wrap everything into a reusable component which can also be used by <ExternalLink href="https://claude.ai">Claude</ExternalLink>, <ExternalLink href="https://cursor.sh">Cursor</ExternalLink>, <ExternalLink href="https://openai.com/index/introducing-apps-in-chatgpt/">ChatGPT apps</ExternalLink> or any AI Agent.
 
 While we're using DemoTradePro as our example, the final agent architecture you'll build can sit **in front of any existing API**. The authentication patterns, tool calling mechanisms, and MCP packaging you'll learn here are universally applicable.
 
- By the end of this workshop, you'll have a functioning agent for turning any API into an AI-native service that can be easily integrated into various AI workflows.
+By the end of this workshop, you'll have a functioning agent for turning any API into an AI-native service that can be easily integrated into various AI workflows.
 
 ## Complete Architecture Overview
 
-<Mermaid chart={`
+<Mermaid
+  chart={`
 graph TB
     subgraph "DemoTradePro Ecosystem"
         User[👤 Workshop Participant]
@@ -48,8 +53,9 @@ graph TB
         end
         
         subgraph "AI Agent (Port 3003)"
-            Agent[🤖 AI Agent<br/>AI SDK v5 + GPT-4o-mini]
-            Tools[🔧 Trading Tools<br/>@workspace/agent-utils]
+            Agent[🤖 Next.js AI Agent<br/>AI SDK v5 + GPT-4o-mini]
+            MCPServer[📄 MCP Server<br/>Next.js mcp-handlers]
+            Tools[🔧 Trading Tools Library<br/>@workspace/agent-utils]
         end
         
         subgraph "DemoTradePro Platform"
@@ -71,7 +77,9 @@ graph TB
     Web --> Auth0
     
     Auth0 --> |"Token delegation<br/>(OBO flow)"| API
+    Agent --> |"Authenticated tools"| MCPServer
     Agent --> |"Authenticated tools"| Tools
+    MCPServer --> Tools
     Tools --> |"Delegated tokens"| API
     Web --> |"Direct auth"| API
     
@@ -81,22 +89,27 @@ graph TB
     class Agent,Tools agent
     class Web,API,DB platform
     class Docs docs
-`} />
+`}
+/>
 
 ## Key Security Concepts
 
-- **Leveraging Short-lived tokens** - 5-minute TTL for minimal blast radius
-- **<ExternalLink href="https://auth0.com/docs/secure/tokens/token-vault">Token Vault</ExternalLink>** - Secure token exchange instead keys that grant broad access
-- **<ExternalLink href="https://datatracker.ietf.org/doc/html/rfc8693">On-Behalf-Of (OBO)</ExternalLink>** - User tokens → API tokens
+- **Leveraging Short-lived tokens** - create short-lived, fine-grained access tokens ensuring a minimal blast radius if a token is ever compromised.
+- **Federated Login with OIDC** - Enable users to login to one application using credentials from a different, external identity provider using OpenID Connect.   
+- **<ExternalLink href="https://auth0.com/docs/secure/tokens/token-vault">Token Vault</ExternalLink>** - Securely store & exchange user tokens for third-party tokens instead of using keys that grant broad access or create overprivileged system actors.
+- **<ExternalLink href="https://datatracker.ietf.org/doc/html/rfc8693">On-Behalf-Of (OBO)</ExternalLink>** - Enable users to delegate work to agents, and allow them to obtain API access tokens and perform actions on behalf of users.
+- **<ExternalLink href="https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0-ID1.html">Client Initiated Backchannel Authentication</ExternalLink>** - Allow clients to initiate authentication requests on behalf of users, and receive tokens asynchronously once the user approves on a separate device.
 
 ## Prerequisites
 
-This workshop leverages Typescript and the <ExternalLink href="https://ai-sdk.dev">Vercel AI SDK</ExternalLink>, the final agent can be deployed to <ExternalLink href="https://vercel.com">Vercel</ExternalLink>. All the necessary tools, and libraries are included in your [starter kit](https://github.com/ciamshrek/demo-trade-pro) and will automatically be installed, but we require 3 dependencies
+This workshop leverages Typescript and the <ExternalLink href="https://ai-sdk.dev">Vercel AI SDK</ExternalLink>, the final agent can be deployed to <ExternalLink href="https://vercel.com">Vercel</ExternalLink>. All the necessary tools, and libraries are included in your [starter kit](https://github.com/ciamshrek/demo-trade-pro) and will automatically be installed, but we require the following dependencies:
 
-- <ExternalLink href="https://nodejs.org">Node.js</ExternalLink> (LTS 22 is preferred) 
+- <ExternalLink href="https://nodejs.org">Node.js</ExternalLink> (LTS 22 is
+  preferred)
 - <ExternalLink href="https://pnpm.io">PNPM</ExternalLink> (optional)
-- <ExternalLink href="https://auth0.com/docs/cli">Auth0 CLI</ExternalLink>
-- <ExternalLink href="https://terraform.io">Terraform</ExternalLink> 
+- <ExternalLink href="https://github.com/auth0/auth0-cli">Auth0 CLI</ExternalLink>
+- <ExternalLink href="https://developer.hashicorp.com/terraform/install">Terraform</ExternalLink>
+- <ExternalLink href="https://docs.docker.com/desktop/setup/install/mac-install/">Docker</ExternalLink>
 
 If you are having trouble installing these please consult the helpers in the workshop.
 

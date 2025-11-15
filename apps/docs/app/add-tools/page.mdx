@@ -111,57 +111,12 @@ export const agentTools = {
 
 **Test your agent**: Now you you should still be able to fetch stock prices for WAYNE.
 
-With the same pattern we can now import all tools that are available for Public API Usage, 
-the final file will look like.
-
-```typescript
-/**
- * DemoTradePro Agent Tools Configuration
- * Centralized tool definitions for the chat agent
- */
-import { createAPIClient } from '@workspace/agent-utils';
-import * as GetStockPrice from '@workspace/agent-utils/tools/get-stock-price';
-import * as SearchStocks from '@workspace/agent-utils/tools/search-stocks';
-import * as GetStockInfo from '@workspace/agent-utils/tools/get-stock-info';
-
-/**
- * Create shared API client for public endpoints
- * No token provider needed for public market data
- */
-const apiClient = createAPIClient(process.env.API_BASE_URL!);
-
-/**
- * Public stock market tools - no authentication required
- */
-export const publicStockTools = {
-  getStockPrice: GetStockPrice.createAISDKTool(apiClient),
-  searchStocks: SearchStocks.createAISDKTool(apiClient),
-  getStockInfo: GetStockInfo.createAISDKTool(apiClient),
-} as const;
-
-/**
- * All available tools for the agent
- * Currently only includes public tools - authenticated tools will be added later
- */
-export const agentTools = {
-  ...publicStockTools,
-} as const;
-```
-
-**What these tools do:**
-- ✅ `getStockPrice` - Get current price for any stock symbol
-- ✅ `searchStocks` - Find stocks by company name
-- ✅ `getStockInfo` - Get detailed company information
-
-Now let's test the stock tools.
+Now let's test the **getStockPrice** tool.
 
 **Test these prompts:**
 
 1. **Stock price:** *"What's the current price of WAYNE stock?"*
    - Should call `getStockPrice` tool and show real price data!
-
-2. **Company search:** *"Find me information about Stark Industries"*
-   - Should use `searchStocks` and `getStockInfo` tools
 
 3. **General trading:** *"What's your role?"*
    - Should work as before (trading advice)
@@ -169,7 +124,6 @@ Now let's test the stock tools.
 **Expected behavior:**
 - Agent will pause, call the appropriate tool
 - Show real stock data from DemoTradePro API
-- Provide insights about the companies
 
 ---
 
@@ -180,14 +134,11 @@ Your agent now has **public stock data access** and it works perfectly!
 **What you've built:**
 - ✅ Working AI SDK v5 agent with tools
 - ✅ Real-time stock price fetching
-- ✅ Company information lookup
 - ✅ Clean shared tools architecture
 - ✅ **No authentication needed** - public data is safe!
 
 **Try these test prompts:**
 - *"What's WAYNE trading at today?"*
-- *"Tell me about Stark Industries"*
-- *"Search for companies with 'Wayne' in the name"*
 
 ---
 

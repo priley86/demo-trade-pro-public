@@ -5,11 +5,11 @@
  * functionality with Auth0 JWT token authentication. It serves as the main entry point
  * for MCP clients to communicate with our server and invoke registered tools.
  */
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { createMcpHandler, withMcpAuth } from 'mcp-handler';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { createMcpHandler, withMcpAuth } from "mcp-handler";
 
-import auth0Mcp from '../../lib/auth0-mcp';
-import { registerTools } from '../../lib/tools.final-state';
+import auth0Mcp from "../../lib/auth0-mcp";
+import { registerTools } from "../api/chat/mcp-tools.final-state";
 
 const initializeServer = async (server: McpServer) => {
   registerTools(server);
@@ -20,8 +20,8 @@ const handler = createMcpHandler(
   {
     // MCP Server configuration options
     serverInfo: {
-      name: 'Example Nextjs MCP Server',
-      version: '1.0.0',
+      name: "Example Nextjs MCP Server",
+      version: "1.0.0",
     },
   },
   {

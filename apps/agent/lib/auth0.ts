@@ -27,3 +27,31 @@ export const auth0CustomApiClient = new ApiClient({
   clientId: MCP_SERVER_CUSTOM_API_CLIENT_ID,
   clientSecret: MCP_SERVER_CUSTOM_API_CLIENT_SECRET,
 });
+
+/**
+ * Helper to get delegated access token for the API
+ * Uses the OIDC connection to get a token for the stock trading API
+ * Note: this can only be used by the agent running running with a Next.js Auth0 session
+ */
+export async function getAccessTokenForConnection({
+  connection,
+}: {
+  connection: string;
+}): Promise<string | undefined> {
+  try {
+    if (!auth0.getSession()) {
+      return undefined;
+    }
+
+    const token = await auth0.getAccessTokenForConnection({ connection });
+
+    if (!token.token) {
+      throw new Error("Access token is not available in Auth0 Token Vault");
+    }
+
+    return token.token;
+  } catch (error) {
+    console.error("Failed to get stored access token:", error);
+    throw error;
+  }
+}

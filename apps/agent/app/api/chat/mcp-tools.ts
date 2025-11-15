@@ -5,12 +5,12 @@ const emptyToolInputSchema = {
 } as const;
 
 /**
- * MCP tools with scope-based authorization.
+ * Register MCP tools
  */
 export function registerTools(server: McpServer) {
-  // This tool does not require any scopes
+  // This is a public tool that does not require any scopes
   server.registerTool(
-    "get_datetime",
+    "getDateTime",
     {
       title: "Get DateTime",
       description: "Returns the current UTC date and time",

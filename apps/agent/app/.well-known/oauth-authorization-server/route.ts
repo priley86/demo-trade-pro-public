@@ -21,7 +21,7 @@ const handler: (req: Request) => Promise<Response> = async () => {
 const optionsHandler = () => {
   return new Response(null, {
     status: 200,
-    headers: corsHeaders
+    headers: corsHeaders,
   });
 };
 

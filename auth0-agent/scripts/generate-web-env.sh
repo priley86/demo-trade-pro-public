@@ -71,7 +71,7 @@ API_AUDIENCE=https://api.demotradepro.example
 API_OIDC_CONNECTION_NAME=demotradepro-oidc
 
 # Agent will authenticate users and forward tokens to upstream API
-API_DEFAULT_SCOPES="openid profile email offline_access"
+API_DEFAULT_SCOPES="openid profile email offline_access trade:read trade:write portfolio:read"
 EOF
 
 echo ".env written to $WEB_ENV_FILE"

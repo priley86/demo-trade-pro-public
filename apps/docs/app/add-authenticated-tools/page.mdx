@@ -110,8 +110,6 @@ const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
 // Update your existing public tools to use the shared API client
 export const publicStockTools = {
   getStockPrice: GetStockPrice.createAISDKTool(apiClient),
-  searchStocks: SearchStocks.createAISDKTool(apiClient),
-  getStockInfo: GetStockInfo.createAISDKTool(apiClient),
 } as const;
 
 // Add authenticated tools using the same API client
@@ -161,7 +159,9 @@ Now ask: *"Show me my current portfolio"*
 
 ## Next: Add more authenticated tools
 
-Extend `authenticatedTools` with additional personal data access:
+TODO: Let's add CIBA mentions here and lead into next page about CIBA usage with the agent... 
+
+{/* Extend `authenticatedTools` with additional personal data access:
 
 ```typescript
 import * as GetOrderHistory from '@workspace/agent-utils/tools/get-order-history';
@@ -179,4 +179,6 @@ export const authenticatedTools = {
 - `get-portfolio` - Current holdings
 - `get-order-history` - Past transactions  
 - `get-order-status` - Order tracking
-- `create-order` - Place trades
+- `create-order` - Place trades */}
+
+
