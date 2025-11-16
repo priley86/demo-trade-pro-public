@@ -5,6 +5,7 @@ import { ApiClient } from "@auth0/auth0-api-js";
 import {
   AUTH0_AUDIENCE,
   AUTH0_DOMAIN,
+  API_AUDIENCE,
   MCP_SERVER_CUSTOM_API_CLIENT_ID,
   MCP_SERVER_CUSTOM_API_CLIENT_SECRET,
 } from "./config";
@@ -23,7 +24,7 @@ export const auth0 = new Auth0Client({
 // MCP Server Auth0 Custom API client instance
 export const auth0CustomApiClient = new ApiClient({
   domain: AUTH0_DOMAIN,
-  audience: AUTH0_AUDIENCE,
+  audience: API_AUDIENCE,
   clientId: MCP_SERVER_CUSTOM_API_CLIENT_ID,
   clientSecret: MCP_SERVER_CUSTOM_API_CLIENT_SECRET,
 });
@@ -43,6 +44,10 @@ export async function getAccessTokenForConnection({
       return undefined;
     }
 
+    /**
+     * important: the token returned will have the default API audience for the upstream OIDC connection, e.g "https://api.stocktrade.example"
+     * If a separate audience is needed, configure the OIDC connection in Auth0 accordingly or construct a different ApiClient with the desired audience.
+     */
     const token = await auth0.getAccessTokenForConnection({ connection });
 
     if (!token.token) {

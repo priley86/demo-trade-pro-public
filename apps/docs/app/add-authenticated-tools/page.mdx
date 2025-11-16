@@ -103,9 +103,11 @@ import { getAccessTokenForConnection } from '@/lib/auth0';
 
 // Update your API client to include token provider for authenticated calls
 const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
-  const token = await getAccessTokenForConnection({ connection: 'DEMO_TRADE_PRO' });
+  const token = await getAccessTokenForConnection({
+    connection: process.env.API_OIDC_CONNECTION_NAME!,
+  });
   return token;
-});
+}); 
 
 // Update your existing public tools to use the shared API client
 export const publicStockTools = {

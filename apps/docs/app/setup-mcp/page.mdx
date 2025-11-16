@@ -405,7 +405,76 @@ sequenceDiagram
     }
    ```
 
-6. Now let's add some useful tools to our MCP server. Create a new file called `mcp-tools.ts` in your `app/api/chat` directory, and add the following code:
+6. Our MCP tools which access the DemoTradePro Stock API above require the use of our Auth0 Custom API Client. This is a client which acts on behalf of the user and is linked with the MCP Server (API) in Auth0. The Custom API Client can securely perform token exchanges to get access tokens for the DemoTradePro Stock API using the user's delegated access token.
+
+    Let's enhance our `lib/auth0.ts` file with a new ApiClient, which the MCP Server can use to perform token exchanges on behalf of the user. Update `lib/auth0.ts` to include the following code:
+
+   ```ts
+    import { Auth0Client } from "@auth0/nextjs-auth0/server";
+
+    import { ApiClient } from "@auth0/auth0-api-js";
+
+    import {
+      AUTH0_AUDIENCE,
+      AUTH0_DOMAIN,
+      API_AUDIENCE,
+      MCP_SERVER_CUSTOM_API_CLIENT_ID,
+      MCP_SERVER_CUSTOM_API_CLIENT_SECRET,
+    } from "./config";
+
+    // Server-side agent Auth0 client instance
+    export const auth0 = new Auth0Client({
+      logoutStrategy: "oidc",
+      authorizationParameters: {
+        audience: AUTH0_AUDIENCE,
+        scope: process.env.API_DEFAULT_SCOPES,
+        prompt: "login",
+        connection: process.env.API_OIDC_CONNECTION_NAME,
+      },
+    });
+
+    // MCP Server Auth0 Custom API client instance
+    export const auth0CustomApiClient = new ApiClient({
+      domain: AUTH0_DOMAIN,
+      audience: API_AUDIENCE,
+      clientId: MCP_SERVER_CUSTOM_API_CLIENT_ID,
+      clientSecret: MCP_SERVER_CUSTOM_API_CLIENT_SECRET,
+    });
+
+    /**
+    * Helper to get delegated access token for the API
+    * Uses the OIDC connection to get a token for the stock trading API
+    * Note: this can only be used by the agent running running with a Next.js Auth0 session
+    */
+    export async function getAccessTokenForConnection({
+      connection,
+    }: {
+      connection: string;
+    }): Promise<string | undefined> {
+      try {
+        if (!auth0.getSession()) {
+          return undefined;
+        }
+
+        /**
+         * important: the token returned will have the default API audience for the upstream OIDC connection, e.g "https://api.stocktrade.example"
+        * If a separate audience is needed, configure the OIDC connection in Auth0 accordingly or construct a different ApiClient with the desired audience.
+        */
+        const token = await auth0.getAccessTokenForConnection({ connection });
+
+        if (!token.token) {
+          throw new Error("Access token is not available in Auth0 Token Vault");
+        }
+
+        return token.token;
+      } catch (error) {
+        console.error("Failed to get stored access token:", error);
+        throw error;
+      }
+    }
+   ```
+
+7. Now let's add some useful tools to our MCP server. Create a new file called `mcp-tools.ts` in your `app/api/chat` directory, and add the following code:
 
    ```ts
     import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -596,9 +665,8 @@ sequenceDiagram
       );
     }
     ```
-    💁 **Note**: our MCP tools which access the DemoTradePro Stock API above require the use of our Auth0 Custom API Client. This is a client which acts on behalf of the user and is linked with the MCP Server (API) in Auth0. The Custom API Client can securely perform token exchanges to get access tokens for the DemoTradePro Stock API using the user's delegated access token.
 
-7. Now we can add the transport route for the MCP server, which implements the core MCP protocol functionality. Create a new file called `route.ts` in the `app/[transport]` directory.
+8. Now we can add the transport route for the MCP server, which implements the core MCP protocol functionality. Create a new file called `route.ts` in the `app/[transport]` directory.
 
    ```ts
     /**
@@ -767,7 +835,7 @@ The MCP server makes a token exchange request to Auth0's Token Vault, passing in
   "iss": "https://shrek-workshop-stock.us.auth0.com/",
   "sub": "auth0|690a671f01c18cc9b78fcee1",
   "aud": [
-    "https://api.demotradepro.example",
+    "https://api.stocktrade.example",
     "https://shrek-workshop-stock.us.auth0.com/userinfo"
   ],
   "iat": 1763238410,

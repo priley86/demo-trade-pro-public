@@ -1,4 +1,4 @@
-import { ManagementClient } from 'auth0';
+import { ManagementClient } from "auth0";
 
 // Management API client for creating workshop clients
 export const managementApi = new ManagementClient({
@@ -21,40 +21,48 @@ export interface WorkshopClientResponse {
   tfvars_content: string;
 }
 
-export async function createWorkshopClient(request: WorkshopClientRequest): Promise<WorkshopClientResponse> {
+export async function createWorkshopClient(
+  request: WorkshopClientRequest
+): Promise<WorkshopClientResponse> {
   const { tenantDomain, participantName } = request;
-  
+
   // Validate tenant domain format
-  if (!tenantDomain.includes('.auth0.com') && !tenantDomain.includes('.us.auth0.com') && !tenantDomain.includes('.eu.auth0.com')) {
-    throw new Error('Invalid tenant domain format. Should be like: your-tenant.us.auth0.com');
+  if (
+    !tenantDomain.includes(".auth0.com") &&
+    !tenantDomain.includes(".us.auth0.com") &&
+    !tenantDomain.includes(".eu.auth0.com")
+  ) {
+    throw new Error(
+      "Invalid tenant domain format. Should be like: your-tenant.us.auth0.com"
+    );
   }
 
   const callbackUrl = `https://${tenantDomain}/login/callback`;
   const logoutUrl = `https://${tenantDomain}/logout`;
   const origin = `https://${tenantDomain}`;
-  
-  const clientName = participantName 
+
+  const clientName = participantName
     ? `Workshop Client for ${participantName} (${tenantDomain})`
     : `Workshop Client for ${tenantDomain}`;
 
   try {
     const client = await managementApi.clients.create({
       name: clientName,
-      app_type: 'regular_web',
+      app_type: "regular_web",
       callbacks: [callbackUrl],
       allowed_logout_urls: [logoutUrl],
       allowed_origins: [origin],
       web_origins: [origin],
-      grant_types: ['authorization_code', 'refresh_token'],
-      token_endpoint_auth_method: 'client_secret_basic',
+      grant_types: ["authorization_code", "refresh_token"],
+      token_endpoint_auth_method: "client_secret_basic",
       jwt_configuration: {
-        alg: 'RS256',
+        alg: "RS256",
       },
       oidc_conformant: true,
     });
 
     if (!client.data.client_id || !client.data.client_secret) {
-      throw new Error('Failed to create client - missing credentials');
+      throw new Error("Failed to create client - missing credentials");
     }
 
     // Generate the tfvars content for the participant
@@ -68,7 +76,7 @@ source_client_secret = "${client.data.client_secret}"
 
 # Optional: Customize connection name and API audience
 # oidc_connection_name = "demotradepro-oidc"
-# api_audience = "https://api.demotradepro.example"`;
+# api_audience = "https://api.stocktrade.example"`;
 
     return {
       client_id: client.data.client_id,
@@ -76,10 +84,12 @@ source_client_secret = "${client.data.client_secret}"
       tenant_domain: tenantDomain,
       callback_url: callbackUrl,
       name: clientName,
-      tfvars_content: tfvarsContent
+      tfvars_content: tfvarsContent,
     };
   } catch (error) {
-    console.error('Management API error:', error);
-    throw new Error(`Failed to create workshop client: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Management API error:", error);
+    throw new Error(
+      `Failed to create workshop client: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
   }
 }

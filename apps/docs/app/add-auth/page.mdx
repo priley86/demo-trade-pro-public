@@ -155,11 +155,15 @@ Now we need to setup the Auth0 SDK Integration in the Agent App itself.
 ```typescript
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 
-// Server-side Auth0 client instance
+// Server-side agent Auth0 client instance
 export const auth0 = new Auth0Client({
+  logoutStrategy: "oidc",
   authorizationParameters: {
-    scope: process.env.API_DEFAULT_SCOPES
-  }
+    audience: process.env.AUTH0_AUDIENCE,
+    scope: process.env.API_DEFAULT_SCOPES,
+    prompt: "login",
+    connection: process.env.API_OIDC_CONNECTION_NAME,
+  },
 });
 ```
 

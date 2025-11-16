@@ -6,6 +6,9 @@ export const AUTH0_AUDIENCE =
 export const MCP_SERVER_URL =
   process.env.MCP_SERVER_URL ?? `http://localhost:3003`;
 
+export const API_AUDIENCE =
+  process.env.API_AUDIENCE ?? "https://api.stocktrade.example";
+
 export const MCP_SERVER_CUSTOM_API_CLIENT_ID =
   process.env.MCP_SERVER_CUSTOM_API_CLIENT_ID;
 export const MCP_SERVER_CUSTOM_API_CLIENT_SECRET =

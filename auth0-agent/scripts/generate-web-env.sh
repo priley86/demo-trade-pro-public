@@ -67,7 +67,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 # Upstream DemoTradePro API Configuration (from root tenant)
 API_BASE_URL=https://workshop-trade-app.auth101.dev/
-API_AUDIENCE=https://api.demotradepro.example
+API_AUDIENCE=https://api.stocktrade.example
 API_OIDC_CONNECTION_NAME=demotradepro-oidc
 
 # Agent will authenticate users and forward tokens to upstream API
