@@ -39,10 +39,6 @@ const createDemoTradeProApiClient = (accessToken: string) => {
       if (!token.accessToken) {
         throw new Error("Access token is not available in Auth0 Token Vault");
       }
-      console.log(
-        "Obtained delegated access token for API client:",
-        token.accessToken
-      );
       return token.accessToken;
     } catch (err) {
       console.error("Failed to get stored access token:", err);
