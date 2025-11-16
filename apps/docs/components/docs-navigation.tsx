@@ -11,7 +11,7 @@ const navigationItems = [
   { title: "Add Portfolio Tools", href: "/add-authenticated-tools" },
   { title: "Async Auth", href: "/async-auth" },
   { title: "Setup MCP Handlers", href: "/setup-mcp" },
-  { title: "Bonus: Native AI Tools", href: "/native-ai-tools" },
+  { title: "Bonus: AI-native Tools", href: "/native-ai-tools" },
   // { title: "⚡ MCP Integration", href: "/mcp" },
 ];
 

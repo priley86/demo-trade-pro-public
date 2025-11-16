@@ -1,4 +1,88 @@
-# Native AI Tools Integration
+# AI-native Tools Integration
+
+In this section, we'll show you how to integrate your MCP Server with popular Native AI Tooling platforms like <ExternalLink href="https://developers.openai.com/apps-sdk">ChatGPT App SDK</ExternalLink> and <ExternalLink href="https://www.claude.com/product/claude-code">Claude Code</ExternalLink>, enabling your users' seamless access to your MCP server tools directly from their AI-native environments.
+
+These clients can also make use of DCR (Dynamic Client Registration) to onboard securely with your tenant at Auth0 and access our fictitious DemoTraderPro Stock API.
+
+Here's an expanded flow diagram with DCR included for the AI-native tools mentioned:
+
+<Mermaid
+  chart={`
+sequenceDiagram
+    participant User as 👤 User (Browser)
+    participant Agent as 🤖 Native Tool (Client)
+    participant MCP as 🧰 MCP Server (Resource Server)
+    participant Vault as 🔐 Auth0 Token Vault<br/>(Agent Tenant)
+    participant Root as 🏦 Root Tenant<br/>(DemoTradePro IdP)
+    participant API as 📊 Stock API (Downstream Resource)
+
+    %% --- Initial request with no token ---
+    Agent->>MCP: MCP request (no token)
+    MCP->>Agent: 401 Unauthorized + WWW-Authenticate (resource_metadata URL)
+
+    Note over Agent: Extract resource_metadata URL from WWW-Authenticate
+
+    %% --- Resource metadata discovery ---
+    Agent->>MCP: GET /.well-known/oauth-protected-resource
+    MCP->>Agent: Protected resource metadata
+
+    Note over Agent: Parse metadata → find authorization_servers<br/>Choose Vault (Agent Tenant Auth0)
+
+    %% --- Authorization server metadata ---
+    Agent->>Vault: GET /.well-known/oauth-authorization-server
+    Vault->>Agent: AS metadata (auth, token, registration endpoints)
+
+    %% --- Dynamic Client Registration (DCR) ---
+    alt Dynamic Client Registration
+        Agent->>Vault: POST /register (DCR)
+        Vault->>Agent: Public client_id
+    end
+
+    Note over Agent: Generate PKCE parameters<br/>Include resource = MCP resource identifier
+
+    %% --- Browser-based login ---
+    Agent->>User: Redirect browser to Vault authorize URL<br/>+ code_challenge + resource
+    User->>Vault: Authorization request
+    Note over Vault: User authenticates + consents
+    Vault->>User: Redirect to callback with authorization code
+    User->>Agent: Authorization code
+
+    %% --- Token request to Auth0 (Vault) ---
+    Agent->>Vault: Token request (code + code_verifier + resource)
+    Vault->>Agent: Access token (short-lived)
+
+    %% --- Authenticated MCP request ---
+    Agent->>MCP: MCP request with Bearer access token
+
+    %% --- MCP server MUST validate JWT token ---
+    MCP->>Vault: Validate access token (JWKS or introspection)
+    Vault->>MCP: Token valid (scopes + audience OK)
+
+    Note over MCP,Agent: MCP tools can now execute with trusted token
+
+    %% --- MCP server needs downstream Stock API token ---
+    Note over MCP: Must call Stock API with token for Root Tenant audience
+
+    %% --- Token Exchange (Vault -> Root) ---
+    MCP->>Vault: Token Exchange request (RFC 8693)<br/>subject_token = Agent access token<br/>aud = Root Tenant (Stock API)
+    Vault->>Root: Exchange request to Root Tenant IdP
+    Root->>Root: Validate + issue API-scoped access token
+    Root->>Vault: Downstream (Stock API) token
+    Vault->>MCP: Return downstream API token (via Token Vault)
+
+    %% --- Downstream API call ---
+    MCP->>API: GET /stocks/WAYNE<br/>Authorization: Bearer downstream token
+    API->>API: Validate JWT (Root tenant issuer)
+    API->>MCP: $150.25
+
+    %% --- Return to user ---
+    MCP->>Agent: Stock price = $150.25
+    Agent->>User: "WAYNE is $150.25"
+`} />
+
+## TODO Validating in MCP Inspector
+
+... instructions for using MCP Inspector to validate DCR and token exchange flows ...
 
 ## TODO ChatGPT App SDK & ChatGPT Connector Integration
 

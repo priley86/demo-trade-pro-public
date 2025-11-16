@@ -9,7 +9,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 
 import auth0Mcp from "../../lib/auth0-mcp";
-import { registerTools } from "../api/chat/mcp-tools.final-state";
+import { registerTools } from "../api/chat/mcp-tools";
 
 const initializeServer = async (server: McpServer) => {
   registerTools(server);
