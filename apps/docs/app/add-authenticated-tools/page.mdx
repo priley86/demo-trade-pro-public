@@ -34,7 +34,7 @@ sequenceDiagram
 - ✅ **Root tenant protection** - API secured by DemoTradePro's main tenant
 - ✅ **Automatic refresh** - Auth0 handles token expiry transparently
 - ✅ **User context** - Real user identity flows through to API
-- ✅ **Portfolio tools** - `getPortfolio`, `getOrderHistory`, `createOrder`
+- ✅ **Portfolio tools** - `getPortfolio` & `getOrderHistory`
 
 ## Test your current agent
 
@@ -148,39 +148,4 @@ Now ask: *"Show me my current portfolio"*
 4. **Secure Calls**: Agent makes authenticated requests on behalf of the user
 
 **Security benefit:** No root API keys, only user-scoped tokens with limited lifetime.
-
----
-
-## Try these prompts
-
-- *"What stocks do I currently own?"*
-- *"What's the total value of my portfolio?"*
-- *"Show me my WAYNE holdings and current price"*
-
----
-
-## Next: Add more authenticated tools
-
-TODO: Let's add CIBA mentions here and lead into next page about CIBA usage with the agent... 
-
-{/* Extend `authenticatedTools` with additional personal data access:
-
-```typescript
-import * as GetOrderHistory from '@workspace/agent-utils/tools/get-order-history';
-import * as CreateOrder from '@workspace/agent-utils/tools/create-order';
-
-// All tools share the same API client with token provider
-export const authenticatedTools = {
-  getPortfolio: GetPortfolio.createAISDKTool(apiClient),
-  getOrderHistory: GetOrderHistory.createAISDKTool(apiClient),
-  createOrder: CreateOrder.createAISDKTool(apiClient),
-} as const;
-```
-
-**Available authenticated tools:**
-- `get-portfolio` - Current holdings
-- `get-order-history` - Past transactions  
-- `get-order-status` - Order tracking
-- `create-order` - Place trades */}
-
 

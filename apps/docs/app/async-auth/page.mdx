@@ -1,10 +1,44 @@
-# Asynchronous Authorization with CIBA
+# Keep Humans in the Loop
 
-Asynchronous Authorization provides a secure "human-in-the-loop" mechanism that enables AI agents to work autonomously while seeking user consent for sensitive or critical actions only when necessary.
+Auth0 Async Auth provides a secure "human-in-the-loop" mechanism that enables AI agents to work autonomously while seeking user consent for sensitive or critical actions only when necessary.
 
 Built on the <ExternalLink href="https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html">Client-Initiated Backchannel Authentication (CIBA)</ExternalLink> standard and enhanced with <ExternalLink href="https://datatracker.ietf.org/doc/html/rfc9396">Rich Authorization Requests (RAR)</ExternalLink>, this authentication flow allows an AI agent's backend to initiate an authorization request without direct user interaction on the same device. Instead, an authorized user receives a notification (via push, SMS, or email) on a separate trusted authentication device, such as their mobile phone, where they can review detailed context about the requested action—like "Approve payment of $50.00 to ExampleCorp"—and approve or deny it at their convenience. 
 
 This approach is ideal for scenarios like transactional approvals, accessing sensitive data, or executing high-privilege tasks, where the agent needs delayed user approval while maintaining security and transparency through rich, verifiable context that builds user trust.
+
+## What we're building in this step
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User as 👤 User (Alice)
+    participant UserPhone as 📱 User's Phone <br /> (Alice\'s Phone)
+    participant Agent as 🤖 Agent <br/>:3003
+    participant AgentTenant as 🔐 Auth0 Tenant <br />  (Agent Tenant)
+    participant Root as 🏦 Root Tenant<br/>(DemoTradePro)
+    participant API as 📊 Stock API<br/>:3001
+    participant DB as 🗄️ Database
+    
+    User->>Agent: "Buy 10 WAYNE shares"
+    Agent->>Agent: Extract user session
+    Agent->>AgentTenant: Ask user's approval
+    AgentTenant->>UserPhone: Send approval request
+    User->>UserPhone: Approve request
+    UserPhone->>AgentTenant: Resolve challenge
+    AgentTenant->>Agent: Approval confirmed <br />(Access Token with approved details)
+    Agent->>AgentTenant: getAccessTokenForConnection()<br/>(exchange async authorized access token)
+    AgentTenant->>Root: Token exchange request<br/>(using OIDC connection)
+    Root->>Root: Validate + generate<br/>API access token
+    Root->>AgentTenant: Scoped access token<br/>(auto-refresh enabled)
+    AgentTenant->>Agent: Fresh API token<br/>(cached + auto-renewed)
+    Agent->>API: createOrder()<br/>with delegated token
+    API->>API: Validate JWT + extract userId
+    API->>DB: INSERT INTO Orders<br/>SET userId = 'alice', symbol = 'WAYNE', shares = 10
+    DB->>API: Order ID
+    API->>Agent: Order response
+    Agent->>User: "You now own 10 more WAYNE shares..."
+    
+    Note over Root: Root tenant protects<br/>API with real user context
+`} />
 
 ## Async Auth Setup
 
@@ -14,9 +48,11 @@ Prerequsities:
 
 
 1. **Under Security** -> **Multi-factor Auth** ensure you have enabled **Push Notifications using Auth0 Guardian**
+   ![Enable Auth0 MFA](/images/enable-mfa.png)
 2. After enabling Push Notifications, you'll want to enroll your user for CIBA. Here's one of easy way of achieving that:
-   * Navigate to **User Management -> Users** and select your user oidc|demotradepro user
-   * Within the **Details** tab, scroll down to **Multi-Factor Authentication** and select **Enroll user in MFA**.
+   * Navigate to **User Management -> Users** and select your oidc|demotradepro user
+   * Within the **Details** tab, scroll down to **Multi-Factor Authentication** and select **Send and enrollment invitation**.
+     ![Send Enrollment Invitation](/images/send-enrollment-invitation.png)
    * This will email you an MFA enrollment email titled **Invitation to enroll in Multifactor Authentication**. Find the email and hit the **Enroll in Mutlifactor Authentication** button.
    * This will provided you a QR code which you can scan on your mobile device and use to enroll your user for push notifications with Auth0 Guardian
 
