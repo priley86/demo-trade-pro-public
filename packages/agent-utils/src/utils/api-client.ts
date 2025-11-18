@@ -37,7 +37,13 @@ export class DemoTradeProAPIClient {
     const safeEndpoint = endpoint.startsWith("/")
       ? endpoint.substring(1)
       : endpoint;
-    const url = new URL(safeEndpoint, this.baseUrl).toString();
+
+    // Ensure baseUrl ends with / for proper URL joining
+    const normalizedBaseUrl = this.baseUrl.endsWith("/")
+      ? this.baseUrl
+      : `${this.baseUrl}/`;
+
+    const url = new URL(safeEndpoint, normalizedBaseUrl).toString();
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

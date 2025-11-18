@@ -66,7 +66,7 @@ REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your_openai_api_key_here
 
 # Upstream DemoTradePro API Configuration (from root tenant)
-API_BASE_URL=https://workshop-trade-app.auth101.dev/
+API_BASE_URL=https://workshop-stock-api.auth101.dev/api
 API_AUDIENCE=https://api.stocktrade.example
 API_OIDC_CONNECTION_NAME=demotradepro-oidc
 
