@@ -61,3 +61,35 @@ export async function getAccessTokenForConnection({
     throw error;
   }
 }
+
+import { AuthorizationDetails } from "@auth0/nextjs-auth0/types";
+
+export async function getTokenByBackchannelAuth({
+  bindingMessage,
+  authorizationDetails,
+}: {
+  bindingMessage: string;
+  authorizationDetails?: AuthorizationDetails[];
+}) {
+  const session = await auth0.getSession();
+  if (!session) {
+    return undefined;
+  }
+
+  try {
+    const token = await auth0.getTokenByBackchannelAuth({
+      bindingMessage,
+      authorizationDetails,
+      loginHint: {
+        sub: session.user.sub,
+      },
+    });
+    if (!token.tokenSet) {
+      throw new Error("The user didn't authorize the request");
+    }
+    return token.tokenSet.accessToken;
+  } catch (error) {
+    console.error("Failed to get token by backchannel auth:", error);
+    throw error;
+  }
+}

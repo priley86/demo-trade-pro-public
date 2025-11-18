@@ -27,7 +27,7 @@ const handler = createMcpHandler(
   {
     // Handler configuration options
     redisUrl: process.env.REDIS_URL,
-    verboseLogs: true,
+    // verboseLogs: true,
   }
 );
 

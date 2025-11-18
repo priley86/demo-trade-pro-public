@@ -18,6 +18,10 @@ resource "auth0_resource_server" "mcp_server" {
   allow_offline_access = true
   token_lifetime       = 86400
   skip_consent_for_verifiable_first_party_clients = true
+
+  authorization_details {
+    type = "urn:auth0:schemas:authorization-details:v1:create_order"
+  }
 }
 
 # Add delay to avoid rate limiting

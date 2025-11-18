@@ -23,12 +23,11 @@ echo ""
 echo "Step 2: Initialize Terraform..."
 echo "------------------------------"
 cd ./terraform
-terraform init
+terraform init -upgrade
 
 echo ""
 echo "Step 3: Apply Terraform Configuration..."
 echo "---------------------------------------"
-terraform init
 terraform apply -auto-approve -parallelism=1
 
 echo ""

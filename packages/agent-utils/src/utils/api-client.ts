@@ -7,7 +7,7 @@ export type TokenProvider = (context: {
 }) => Promise<string | undefined>;
 
 type AuthParams = {
-  bindinMessage?: string;
+  bindingMessage?: string;
   authorizationDetails?: Record<string, unknown>[];
 };
 

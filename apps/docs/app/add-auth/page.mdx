@@ -100,6 +100,7 @@ cd auth0-agent
    * Under **Access Settings**, select **Allow Skipping User Consent**. This is due to the fact we are using Multi-Resource Refresh Tokens when accessing the My Account API.
 
 <strong>StockTrade Regular Web Application Settings</strong>
+
 Now, let's define a Multi-Resource Refresh Token policy for your Application:
 1. Navigate to Applications > Applications and select your **Stock Trade** application.
    * On the **Settings** tab, scroll down to the **Multi-Resource Refresh Token** section.
@@ -107,10 +108,12 @@ Now, let's define a Multi-Resource Refresh Token policy for your Application:
 2. Scroll down within **Settings** tab to **Advanced Settings**. Expand the toggle and select **Grant Types** tab.
    * Make sure that **Authorization Code**, **Refresh Token**, **Client Initiated Backchannel Authentication (CIBA)**, **Token Vault** and all are enabled.
    * Once you've enabled CIBA, you'll see CIBA options above. Making sure the **Guardian Push** Notification Channel is enabled.
+   * Hit the **Save** button at the bottom of the page.
 
 <strong>DemoTradePro OIDC Connection</strong>
 1. Navigate to **Authentication -> Enterprise** and select **OpenID Connect**. Next select your **demotradepro-oidc** connection open the **Settings** tab. Scroll to the bottom and the **Purpose** section.
    * Ensure that you enable **Use for Authentication** and **Use for Connected Accounts with Token Vault** toggles.
+   * Hit the **Save Changes** button.
 
 ## Install NextJS Auth0 SDK
 
