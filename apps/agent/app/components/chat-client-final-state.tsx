@@ -2,16 +2,58 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
-import { Send, Bot, User, TrendingUp, LogOut } from "lucide-react";
-import type { User as Auth0User } from "@auth0/nextjs-auth0/types";
+import {
+  Send,
+  Bot,
+  User,
+  TrendingUp,
+  LogOut,
+  CheckCircle,
+  Link2,
+} from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
+import { User as Auth0User } from "@auth0/nextjs-auth0/types";
 
 interface ChatClientProps {
-  user?: Auth0User;
+  user: Auth0User | null;
+  connectionName: string;
+  defaultScopes: string;
+  apiAudience: string;
+  isAccountConnected: boolean;
 }
 
-export default function ChatClient({ user }: ChatClientProps) {
+export default function ChatClient({
+  user,
+  connectionName,
+  defaultScopes,
+  apiAudience,
+  isAccountConnected,
+}: ChatClientProps) {
   const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat();
+
+  const handleConnectAccount = () => {
+    // Navigate to the connect-account endpoint which will redirect to Auth0
+    const search = new URLSearchParams({
+      connection: connectionName,
+      returnTo: "/",
+      scopes: defaultScopes,
+      audience: apiAudience,
+    });
+    const url = new URL("/auth/connect", window.location.origin);
+    url.search = search.toString();
+    console.log("url:", url.toString());
+    window.location.href = url.toString();
+  };
 
   const suggestedQuestions = [
     "What's the difference between stocks and bonds?",
@@ -30,37 +72,63 @@ export default function ChatClient({ user }: ChatClientProps) {
           </div>
           <div className="flex items-center justify-center gap-4">
             <p className="text-muted-foreground">
-              Welcome back, {user?.name || "Trader"}! Your intelligent trading
-              assistant for fictional companies.
+              Welcome! Your intelligent trading assistant for fictional
+              companies.
             </p>
             <div className="flex items-center gap-3">
-              {/* <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <a href="/auth/logout" className="flex items-center gap-1">
-                  <LogOut className="h-3 w-3" />
-                  Sign Out
-                </a>
-              </button> */}
+              {user && (
+                <>
+                  <Button
+                    onClick={handleConnectAccount}
+                    variant={isAccountConnected ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "text-sm",
+                      isAccountConnected &&
+                        "bg-green-600 hover:bg-green-700 text-white"
+                    )}
+                    disabled={isAccountConnected}
+                  >
+                    {isAccountConnected ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Account Connected
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="h-3 w-3 mr-1" />
+                        Connect Account
+                      </>
+                    )}
+                  </Button>
+                  <a
+                    href="/auth/logout"
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                  >
+                    <LogOut className="h-3 w-3" />
+                    Sign Out
+                  </a>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* Chat Interface */}
-        <div className="bg-white rounded-lg shadow-lg border h-[600px] flex flex-col">
-          <div className="border-b p-4">
-            <h2 className="flex items-center gap-2 font-semibold">
+        <Card className="h-[600px] flex flex-col">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               Trading Assistant
-            </h2>
-          </div>
+            </CardTitle>
+          </CardHeader>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <CardContent className="flex-1 overflow-y-auto">
             <div className="space-y-4">
               {messages.length === 0 && (
                 <div className="text-center py-8">
                   <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Hello {user?.given_name || user?.name || "there"}!
-                  </h3>
+                  <h3 className="text-lg font-medium mb-2">Hello there!</h3>
                   <p className="text-muted-foreground mb-6">
                     I can help you learn about trading concepts and strategies.
                     Try asking about our fictional companies or trading basics.
@@ -68,13 +136,14 @@ export default function ChatClient({ user }: ChatClientProps) {
 
                   <div className="flex flex-wrap gap-2 justify-center">
                     {suggestedQuestions.map((question, index) => (
-                      <button
+                      <Badge
                         key={index}
-                        className="text-xs h-auto py-2 px-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700"
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-secondary/80 transition-colors"
                         onClick={() => sendMessage({ text: question })}
                       >
                         {question}
-                      </button>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -93,11 +162,12 @@ export default function ChatClient({ user }: ChatClientProps) {
                     }`}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
                         message.role === "user"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
                     >
                       {message.role === "user" ? (
                         <User className="h-4 w-4" />
@@ -106,11 +176,12 @@ export default function ChatClient({ user }: ChatClientProps) {
                       )}
                     </div>
                     <div
-                      className={`rounded-lg p-3 ${
+                      className={cn(
+                        "rounded-lg p-3",
                         message.role === "user"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 text-gray-900"
-                      }`}
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
                     >
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.parts.map((part, i) => {
@@ -131,7 +202,7 @@ export default function ChatClient({ user }: ChatClientProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </CardContent>
 
           <div className="border-t p-4">
             <form
@@ -144,22 +215,22 @@ export default function ChatClient({ user }: ChatClientProps) {
               }}
               className="flex gap-2"
             >
-              <input
+              <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about trading, stocks, or market concepts..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={!input.trim()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="flex items-center gap-2"
               >
                 <Send className="h-4 w-4" />
-              </button>
+              </Button>
             </form>
           </div>
-        </div>
+        </Card>
 
         {/* Footer */}
         <div className="text-center mt-4 text-sm text-muted-foreground">
