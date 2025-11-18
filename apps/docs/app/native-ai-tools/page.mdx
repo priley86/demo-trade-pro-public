@@ -119,15 +119,25 @@ Now, as far as environment variables go, you'll need to set the same ones you ha
 **⚠️ Also important**: you'll need to set the `AUTH0_AUDIENCE` to the API Identifer you used when creating the **StockTrade MCP Server** API in Auth0. This is critical for token validation to work correctly. As you'll see later in the ChatGPT App SDK section, some providers will actually request this as the `resource` (audience) based on the MCP Server URL you provide and not allow you to specify it when authorizing with Auth0, so I recommend making this match your MCP resource URL exactly, e.g., `https://demo-trade-pro-agent.vercel.app/mcp`. This will require you to create an additional API in your Auth0 tenant with this exact identifier with matching settings to your existing **StockTrade MCP Server**.
 
 An alternative (and recommended) path here is rerunning the `auth0-agent/init.sh` script provided for setting up your tenant after changing your `AGENT_BASE_URL` setting in the `auth0-agent/config.sh` provided. e.g.:
+
 ```bash
 # update auth0-agent/config.sh with your new Vercel URL
 export AGENT_BASE_URL="https://demo-trade-pro-agent.vercel.app"
 
+# Login to Auth0 CLI using the tenant you wish to use
+auth0 login --scopes create:client_grants
+
 # re-run the init script
 ./auth0-agent/init.sh
 ```
-I recommend deleting all of your existing tenant resources (Apps, APIs, OIDC connections) if this is the same tenant you used before, as this will ensure your new client Application is configured correctly with the new Vercel URL added to the list of **Allowed Callback URLs**, **Allowed Logout URLs**, and **Allowed Web Origins** in your Auth0 Application settings for your **StockTrade** application, as well as ensuring all new Auth0 resources are created with the correct identifiers.
 
+**Note**: If you plan to run this on the same tenant, it may easiest to delete all of your existing tenant resources (Apps, APIs, OIDC connections) prior so that the terraform scripts start _"fresh"_:
+```
+cd auth0-agent/terraform
+terraform destroy -auto-approve
+rm -f terraform.tfstate terraform.tfstate.backup .terraform.lock.hcl
+```
+ 
 If you are looking to test this quickly with MCP Inspector and your existing configuration though, your existing `http://localhost:3003/mcp` identifer (`AUTH0_AUDIENCE`) will work fine for now. You'll still want to set the `APP_BASE_URL` and `MCP_SERVER_URL` appropriately to reflect your new Vercel URL deployment.
 
 Hit **Deploy** and wait for your project to build and deploy successfully! With any luck, you should see a successful deployment screen like this after your Next.js project has finished building and deployed:
