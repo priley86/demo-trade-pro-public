@@ -34,7 +34,7 @@ sequenceDiagram
 - ✅ **Root tenant protection** - API secured by DemoTradePro's main tenant
 - ✅ **Automatic refresh** - Auth0 handles token expiry transparently
 - ✅ **User context** - Real user identity flows through to API
-- ✅ **Portfolio tools** - `getPortfolio`, `getOrderHistory`, `createOrder`
+- ✅ **Portfolio tools** - `getPortfolio` & `getOrderHistory`
 
 ## Test your current agent
 
@@ -151,36 +151,13 @@ Now ask: *"Show me my current portfolio"*
 
 ---
 
-## Try these prompts
+## 💸 When can I start trading, though?
 
-- *"What stocks do I currently own?"*
-- *"What's the total value of my portfolio?"*
-- *"Show me my WAYNE holdings and current price"*
+Now try asking: *"Buy 2 shares of STARK if the price is below $200"*
 
----
+**Agent response:** *"I don't have the ability to place trades directly on your behalf..."*
 
-## Next: Add more authenticated tools
+**The problem:** Your agent knows who you are and how to access your data, but it doesn't know how to place orders on your behalf.
 
-TODO: Let's add CIBA mentions here and lead into next page about CIBA usage with the agent... 
-
-{/* Extend `authenticatedTools` with additional personal data access:
-
-```typescript
-import * as GetOrderHistory from '@workspace/agent-utils/tools/get-order-history';
-import * as CreateOrder from '@workspace/agent-utils/tools/create-order';
-
-// All tools share the same API client with token provider
-export const authenticatedTools = {
-  getPortfolio: GetPortfolio.createAISDKTool(apiClient),
-  getOrderHistory: GetOrderHistory.createAISDKTool(apiClient),
-  createOrder: CreateOrder.createAISDKTool(apiClient),
-} as const;
-```
-
-**Available authenticated tools:**
-- `get-portfolio` - Current holdings
-- `get-order-history` - Past transactions  
-- `get-order-status` - Order tracking
-- `create-order` - Place trades */}
-
+**Coming up:** We'll add the create order tool but not without making sure we are in the loop when the agent decides to perform a trade operation! 🔐
 
