@@ -1,13 +1,5 @@
-import { auth0 } from "../lib/auth0";
 import ChatClient from "./components/chat-client";
-import type { ReactElement } from "react";
 
-export default auth0.withPageAuthRequired(
-  async function Chat() {
-    const session = await auth0.getSession();
-    const user = session?.user;
-
-    return <ChatClient user={user!} />;
-  },
-  { returnTo: "/" }
-) as unknown as () => Promise<ReactElement>;
+export default async function Chat() {
+  return <ChatClient />;
+}

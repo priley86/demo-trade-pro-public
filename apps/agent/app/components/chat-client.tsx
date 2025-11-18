@@ -2,7 +2,15 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
-import { Send, Bot, User, TrendingUp, LogOut, CheckCircle } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  TrendingUp,
+  LogOut,
+  CheckCircle,
+  Link2,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -15,9 +23,37 @@ import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { User as Auth0User } from "@auth0/nextjs-auth0/types";
 
-export default function ChatClient({ user }: { user: Auth0User | null }) {
+interface ChatClientProps {
+  user: Auth0User | null;
+  connectionName: string;
+  defaultScopes: string;
+  apiAudience: string;
+  isAccountConnected: boolean;
+}
+
+export default function ChatClient({
+  user,
+  connectionName,
+  defaultScopes,
+  apiAudience,
+  isAccountConnected,
+}: ChatClientProps) {
   const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat();
+
+  const handleConnectAccount = () => {
+    // Navigate to the connect-account endpoint which will redirect to Auth0
+    const search = new URLSearchParams({
+      connection: connectionName,
+      returnTo: "/",
+      scopes: defaultScopes,
+      audience: apiAudience,
+    });
+    const url = new URL("/auth/connect", window.location.origin);
+    url.search = search.toString();
+    console.log("url:", url.toString());
+    window.location.href = url.toString();
+  };
 
   const suggestedQuestions = [
     "What's the difference between stocks and bonds?",
@@ -42,6 +78,29 @@ export default function ChatClient({ user }: { user: Auth0User | null }) {
             <div className="flex items-center gap-3">
               {user && (
                 <>
+                  <Button
+                    onClick={handleConnectAccount}
+                    variant={isAccountConnected ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "text-sm",
+                      isAccountConnected &&
+                        "bg-green-600 hover:bg-green-700 text-white"
+                    )}
+                    disabled={isAccountConnected}
+                  >
+                    {isAccountConnected ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Account Connected
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="h-3 w-3 mr-1" />
+                        Connect Account
+                      </>
+                    )}
+                  </Button>
                   <a
                     href="/auth/logout"
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"

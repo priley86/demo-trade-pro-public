@@ -19,6 +19,7 @@ export const auth0 = new Auth0Client({
     prompt: "login",
     connection: process.env.API_OIDC_CONNECTION_NAME,
   },
+  enableConnectAccountEndpoint: true,
 });
 
 // MCP Server Auth0 Custom API client instance

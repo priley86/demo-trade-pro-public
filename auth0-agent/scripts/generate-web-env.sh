@@ -70,7 +70,7 @@ API_BASE_URL=https://workshop-trade-app.auth101.dev/
 API_AUDIENCE=https://api.stocktrade.example
 API_OIDC_CONNECTION_NAME=demotradepro-oidc
 
-# Agent will authenticate users and forward tokens to upstream API
+# Agent will authenticate users and request tokens with these scopes on the upstream API
 API_DEFAULT_SCOPES="openid profile email offline_access trade:read trade:write portfolio:read"
 EOF
 

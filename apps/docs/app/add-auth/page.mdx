@@ -85,55 +85,32 @@ cd auth0-agent
 **What the init script does:**
 
 - ✅ **Creates Management Client** - Auth0 client for Terraform
-- ✅ **Runs Terraform** - Sets up API resource and agent application  
+- ✅ **Runs Terraform** - Sets up API resource and agent application, along with an Enterprise OIDC connection.  
 - ✅ **Generates Environment** - Creates `apps/agent/.env` file
 
-## Set up enterprise connection (for sign-in)
+**Note:** At the time of this writing, our Terraform scripts do not yet support some steps and newly released features around Token Vault and the Auth0 My Account API (**Connected Accounts**). Let's enable those now manually in the Auth0 Dashboard after Terraform scripts have completed by doing the following:
 
-Since we're building an Agent that plugs into the existing Demo Trade Pro ecosystem, we'll leverage the identity provider that already secures its web and API layers.
+<strong>My Account API Settings</strong>
+1. Navigate to Authentication > APIs, locate the My Account API banner, and select Activate to activate the Auth0 My Account API.
+2. Once activated, select Auth0 My Account API and then select the Applications tab.
+   * Toogle your **StockTrade** to authorize it to access the My Account API.
+   * In the dropdown menu, select the Connected Accounts scopes for the **StockTrade** application, ensuring that at a minimum, the `create:me:connected_accounts` permission is selected.
+   * Select **Update**
+3. Still under the Auth0 My Account API, select the **Settings** tab.
+   * Under **Access Settings**, select **Allow Skipping User Consent**. This is due to the fact we are using Multi-Resource Refresh Tokens when accessing the My Account API.
 
-Visit the hosted Stock Web App at <PlatformLink type="app" path="/developer">Developer Platform</PlatformLink> and:
+<strong>StockTrade Regular Web Application Settings</strong>
+Now, let's define a Multi-Resource Refresh Token policy for your Application:
+1. Navigate to Applications > Applications and select your **Stock Trade** application.
+   * On the **Settings** tab, scroll down to the **Multi-Resource Refresh Token** section.
+   * Select Edit Configuration and then enable the MRRT toggle for the **Auth0 My Account API** and your **StockTrade MCP Server**.
+2. Scroll down within **Settings** tab to **Advanced Settings**. Expand the toggle and select **Grant Types** tab.
+   * Make sure that **Authorization Code**, **Refresh Token**, **Client Initiated Backchannel Authentication (CIBA)**, **Token Vault** and all are enabled.
+   * Once you've enabled CIBA, you'll see CIBA options above. Making sure the **Guardian Push** Notification Channel is enabled.
 
-  1. **Enter your tenant domain** (e.g., `genai-9199191919199191.us.auth0.com`)
-  2. **Click "Generate OIDC Configuration"**
-
-This will generate a set of credentials that grant access to the DemoTradePro API, and allow your agent to authenticate with DemoTradePro's Identity Provider.
-
-At this point we need to connect the DemoTradePro to our Auth0 Tenant, we will do that by using <ExternalLink href="https://auth0.com/docs/secure/identity-providers/enterprise-connections/openid-connect">OpenID Connect</ExternalLink>. In Auth0 Identity Providers, are known as Connections, to add DemoTradePro as an OpenID Connect Identity Provider, you have two options, either set up manually via dashboard, or use the terraform automation.
-
-<Tabs defaultValue="manual" className="w-full">
-  <TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="manual">Manual Configuration</TabsTrigger>
-    <TabsTrigger value="developer-tool">Terraform</TabsTrigger>
-  </TabsList>
-  
-  <TabsContent value="developer-tool" className="space-y-4">
-    1. **Copy the generated `terraform.tfvars` content** 
-    2. **Add it to your `auth0-agent/terraform/terraform.tfvars` file**
-    3. **Run the connection script:**
-
-    ```bash
-    cd auth0-agent
-    ./add-oidc-connection.sh
-    ```
-
-    **Note:** At the time of this writing, our Terraform scripts do not yet support two steps around enabling Token Vault grants for your **StockTrade** application and your **_demotradepro-oidc_** OIDC connection, which you can apply manually in the Auth0 Dashboard after Terraform scripts have completed by doing the following:
-    1. Navigate to **Applications -> Applications** and select your **StockTrade** Regular Web application. Open the **Settings** tab and scroll to the bottom of the page to the **Advanced Settings**. Open the expander and select the **Grant Types** tab. Here you can enable the **Token Vault** and **Client Initiated Backchannel Authentication** grant types for your application.
-    2. Navigate to **Authentication -> Enterprise** and select **OpenID Connect**. Next select your **demotradepro-oidc** connection open the **Settings** tab. Scroll to the bottom and the **Advanced** section. Here you can ensure that Token Vault is enabled for the connection by enabling the **Enable Token Vault** toggle.  
-  </TabsContent>
-  
-  <TabsContent value="manual" className="space-y-4">
-    Configure the enterprise connection manually in your Auth0 Dashboard:
-
-    1. Go to **Authentication > Enterprise > OpenID Connect**
-       ![Auth0 Enterprise Connections](/images/enterprise-connection.png)
-    2. Create a new OIDC connection pointing to the hosted DemoTradePro tenant, name it "demo-trade-pro", and paste the url <PlatformLink type="auth" path="/.well-known/openid-configuration">here</PlatformLink>
-       ![Auth0 Enterprise Connections](/images/new-oidc-connection.png)
-    3. Copy Paste the ClientID and Client Secret you obtained from the Developer section of the Demo Trade Pro Platform (see [Demo Trade Pro Create OAuth OIDC Client page](https://workshop-trade-app.auth101.dev/developer) if you haven't already).
-       ![Auth0 Enterprise Connections](/images/oidc-connection-filled.png)
-    4. Scroll down and click "Create"
-  </TabsContent>
-</Tabs>
+<strong>DemoTradePro OIDC Connection</strong>
+1. Navigate to **Authentication -> Enterprise** and select **OpenID Connect**. Next select your **demotradepro-oidc** connection open the **Settings** tab. Scroll to the bottom and the **Purpose** section.
+   * Ensure that you enable **Use for Authentication** and **Use for Connected Accounts with Token Vault** toggles.
 
 ## Install NextJS Auth0 SDK
 
@@ -164,6 +141,7 @@ export const auth0 = new Auth0Client({
     prompt: "login",
     connection: process.env.API_OIDC_CONNECTION_NAME,
   },
+  enableConnectAccountEndpoint: true,
 });
 ```
 
@@ -218,23 +196,60 @@ Your template agent currently bypasses authentication. Let's enable it!
 
 ```typescript
 import { auth0 } from "../lib/auth0";
-import ChatClient from './components/chat-client';
+import ChatClient from "./components/chat-client";
+import type { ReactElement } from "react";
+import { AUTH0_DOMAIN } from "../lib/config";
+import { decodeJwt } from "jose";
 
 export default auth0.withPageAuthRequired(
   async function Chat() {
     const session = await auth0.getSession();
     const user = session?.user;
 
-    return <ChatClient user={user} />;
+    // Check if the OIDC connection has been added to My Account API has been connected by:
+    // 1. Looking for the Auth0 /me/ audience in accessTokens
+    // 2. Validating the access token's sub field starts with "oidc|demotradepro-oidc"
+    const meAudience = `https://${AUTH0_DOMAIN}/me/`;
+    const oidcConnectionPrefix = `oidc|${process.env.API_OIDC_CONNECTION_NAME}`;
+
+    const isAccountConnected =
+      session?.accessTokens?.some((token) => {
+        if (token.audience !== meAudience) {
+          return false;
+        }
+
+        // Decode the JWT and check the sub field using jose
+        try {
+          const decoded = decodeJwt(token.accessToken);
+          if (!decoded || !decoded.sub || typeof decoded.sub !== "string") {
+            return false;
+          }
+
+          return decoded.sub.startsWith(oidcConnectionPrefix);
+        } catch (error) {
+          console.error("Failed to decode JWT:", error);
+          return false;
+        }
+      }) ?? false;
+
+    return (
+      <ChatClient
+        user={user!}
+        connectionName={process.env.API_OIDC_CONNECTION_NAME!}
+        defaultScopes={process.env.API_DEFAULT_SCOPES!}
+        apiAudience={process.env.API_AUDIENCE!}
+        isAccountConnected={isAccountConnected}
+      />
+    );
   },
   { returnTo: "/" }
-);
+) as unknown as () => Promise<ReactElement>;
 ```
 
 **What this does:**
 - **Server-side auth check** - Verifies user is authenticated before page renders
 - **Automatic redirect** - Sends unauthenticated users to Auth0 login
-- **Clean and simple** - Just wrap your existing component!
+- **Determines if your user has connected their DemoTradePro account** - Checks if the user has enabled the DemoTradePro connection using Auth0 My Account API. If they have not enabled the connection, they will see a button to enable it.
 
 ---
 
