@@ -15,7 +15,7 @@
 
 ```bash
 # Set Node version
-nvm use lts
+nvm use --lts
 
 # Install dependencies
 pnpm install
