@@ -50,10 +50,10 @@ sequenceDiagram
 
 First, create your own Auth0 tenant for authentication:
 
-Go to **<ExternalLink href="https://auth0.ai">https://auth0.ai</ExternalLink>** 
+Go to **<ExternalLink href="https://auth0.com/ai">https://auth0.com/ai</ExternalLink>**
 
 
-1. **Click "Get Started"** and then complete the signup process
+1. **Click "Sign up"** and then complete the signup process
 
     ![Auth0 Landing](/auth0-landing.png)
 
@@ -86,28 +86,29 @@ cd auth0-agent
 
 - ✅ **Creates Management Client** - Auth0 client for Terraform
 - ✅ **Runs Terraform** - Sets up API resource and agent application, along with an Enterprise OIDC connection.  
-- ✅ **Generates Environment** - Creates `apps/agent/.env` file
+- ✅ **Generates Environment** - Creates `apps/agent/.env` file. Copy these environment variables
 
-**Note:** At the time of this writing, our Terraform scripts do not yet support some steps and newly released features around Token Vault and the Auth0 My Account API (**Connected Accounts**). Let's enable those now manually in the Auth0 Dashboard after Terraform scripts have completed by doing the following:
+**Note:** At the time of this writing, our Terraform scripts do not yet support some steps and newly released features around Token Vault and the Auth0 My Account API (**Connected Accounts**). The <ExternalLink href="https://auth0.com/docs/manage-users/my-account-api">Auth0 My Account API</ExternalLink> allows users (and developers) to easily manage their connected accounts using a common set of APIs (all within `https://{yourDomain}/me/`). Let's enable those now manually in the Auth0 Dashboard after Terraform scripts have completed by doing the following:
 
 <strong>My Account API Settings</strong>
-1. Navigate to Authentication > APIs, locate the My Account API banner, and select Activate to activate the Auth0 My Account API.
+1. Navigate to **Authentication > APIs**, locate the My Account API banner, and select Activate to activate the Auth0 My Account API.
 2. Once activated, select Auth0 My Account API and then select the Applications tab.
    * Toogle your **StockTrade** to authorize it to access the My Account API.
    * In the dropdown menu, select the Connected Accounts scopes for the **StockTrade** application, ensuring that at a minimum, the `create:me:connected_accounts` permission is selected.
    * Select **Update**
 3. Still under the Auth0 My Account API, select the **Settings** tab.
+   * Under **Token Sender-Constraining**: if this is a free tenant, set the Sender-Constraining method to "None". If this a tenant with a subscription, you can use "DPoP" (demonstrated proof of possession) with this workshop. You can read more about <ExternalLink href="https://auth0.com/docs/secure/sender-constraining">Sender Constraining here</ExternalLink> if you are curious.
    * Under **Access Settings**, select **Allow Skipping User Consent**. This is due to the fact we are using Multi-Resource Refresh Tokens when accessing the My Account API.
 
 <strong>StockTrade Regular Web Application Settings</strong>
 
 Now, let's define a Multi-Resource Refresh Token policy for your Application:
-1. Navigate to Applications > Applications and select your **Stock Trade** application.
+1. Navigate to **Applications > Applications** and select your **Stock Trade** application.
    * On the **Settings** tab, scroll down to the **Multi-Resource Refresh Token** section.
    * Select Edit Configuration and then enable the MRRT toggle for the **Auth0 My Account API** and your **StockTrade MCP Server**.
 2. Scroll down within **Settings** tab to **Advanced Settings**. Expand the toggle and select **Grant Types** tab.
    * Make sure that **Authorization Code**, **Refresh Token**, **Client Initiated Backchannel Authentication (CIBA)**, **Token Vault** and all are enabled.
-   * Once you've enabled CIBA, you'll see CIBA options above. Making sure the **Guardian Push** Notification Channel is enabled.
+   * Once you've enabled CIBA, you'll see CIBA options above. Make sure the **Guardian Push** Notification Channel is enabled.
    * Hit the **Save** button at the bottom of the page.
 
 <strong>DemoTradePro OIDC Connection</strong>
@@ -164,23 +165,23 @@ Create middleware to protect all routes and adds the Auth0 route handlers such a
 ```typescript
 import type { NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
-
+ 
 export async function middleware(request: NextRequest) {
   // Let Auth0 middleware handle authentication
   // This includes /auth/login, /auth/logout, /auth/callback
   return await auth0.middleware(request);
 }
-
+ 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - sitemap.xml (sitemap file)
-     * - robots.txt (robots file)
-     */
+    * Match all request paths except for the ones starting with:
+    * - _next/static (static files)
+    * - _next/image (image optimization files)
+    * - favicon.ico (favicon file)
+    * - sitemap.xml (sitemap file)
+    * - robots.txt (robots file)
+    */
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"
   ]
 };

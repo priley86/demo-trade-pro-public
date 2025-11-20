@@ -97,9 +97,12 @@ export async function getAccessTokenForConnection({ connection }: { connection: 
 Update your `app/api/chat/tools.ts` to add portfolio access:
 
 ```typescript
+import { createAPIClient } from "@workspace/agent-utils";
+import * as GetStockPrice from "@workspace/agent-utils/tools/get-stock-price";
+
 // Add these imports to your existing tools.ts
-import * as GetPortfolio from '@workspace/agent-utils/tools/get-portfolio';
-import { getAccessTokenForConnection } from '@/lib/auth0';
+import * as GetPortfolio from "@workspace/agent-utils/tools/get-portfolio";
+import { getAccessTokenForConnection } from "@/lib/auth0";
 
 // Update your API client to include token provider for authenticated calls
 const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
@@ -107,7 +110,7 @@ const apiClient = createAPIClient(process.env.API_BASE_URL!, async () => {
     connection: process.env.API_OIDC_CONNECTION_NAME!,
   });
   return token;
-}); 
+});
 
 // Update your existing public tools to use the shared API client
 export const publicStockTools = {
@@ -121,8 +124,8 @@ export const authenticatedTools = {
 
 // Update your agentTools to include authenticated tools
 export const agentTools = {
-  ...publicStockTools,     // your existing public tools
-  ...authenticatedTools,   // new authenticated tools
+  ...publicStockTools, // your existing public tools
+  ...authenticatedTools, // new authenticated tools
 } as const;
 ```
 

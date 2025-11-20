@@ -11,35 +11,19 @@ interface CodeBlockProps {
 
 export function CodeBlock({ children, className = '', language }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
-
-  // Extract the code text from children
-  const getCodeText = (element: React.ReactNode): string => {
-    if (typeof element === 'string') {
-      return element
-    }
-    if (typeof element === 'number') {
-      return element.toString()
-    }
-    if (React.isValidElement(element) && element.props && typeof element.props === 'object' && element.props !== null && 'children' in element.props) {
-      const children = (element.props as { children: React.ReactNode }).children
-      if (Array.isArray(children)) {
-        return children.map(getCodeText).join('')
-      }
-      return getCodeText(children)
-    }
-    if (Array.isArray(element)) {
-      return element.map(getCodeText).join('')
-    }
-    return ''
-  }
-
-  const codeText = getCodeText(children)
+  const preRef = React.useRef<HTMLPreElement>(null)
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(codeText)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      // Get text directly from the DOM to avoid span nesting issues
+      const codeElement = preRef.current?.querySelector('code')
+      if (codeElement) {
+        // Use textContent to get plain text without HTML
+        const text = codeElement.textContent || ''
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     } catch (err) {
       console.error('Failed to copy text: ', err)
     }
@@ -70,8 +54,8 @@ export function CodeBlock({ children, className = '', language }: CodeBlockProps
       </div>
       
       {/* Code content with full width */}
-      <pre className={`${className} rounded-none`}>
-        <code>{children}</code>
+      <pre ref={preRef} className={`${className} rounded-none [&_code]:!select-text [&_code_span]:!select-text`}>
+        {children}
       </pre>
     </div>
   )

@@ -68,11 +68,11 @@ export const agentTools = {
 
 ## Leverage shared tools
 
-Ideally the tool code should be packaged nicely and tested, since we are already using a monorepo we decided to make that easy for you! All of our tooks are provided as `@workspace/agent-utils`. To start using `@workspace/agent-utils` you can import the tools by name from `/tools` directory. 
+Ideally the tool code should be packaged nicely and tested, since we are already using a monorepo we decided to make that easy for you! All of our tools are provided as `@workspace/agent-utils`. To start using `@workspace/agent-utils` you can import the tools by name from `/tools` directory. 
 
 We also provided a `api-client` this handles the nitty-gritty details of calling the DemoTradePro API Server, including retries, and error handling. Let's start by first importing the `createAPIClient` function to create our own client to call DemoTradePro API Server.
 
-In your `/apps/agent/app/route/tools.ts` import the `createAPIClient` function and then invoke it with `process.env.API_BASE_URL` this environment variable is configured to `"https://workshop-stock-api.auth101.dev/api/` by the init script, in the setup. 
+In your `/apps/agent/app/api/chat/tools.ts` import the `createAPIClient` function and then invoke it with `process.env.API_BASE_URL` this environment variable is configured to `"https://workshop-stock-api.auth101.dev/api/` by the init script, in the setup. 
 
 ```typescript
 import { createAPIClient } from '@workspace/agent-utils';
@@ -82,6 +82,11 @@ import { createAPIClient } from '@workspace/agent-utils';
  * No token provider needed for public market data
  */
 const apiClient = createAPIClient(process.env.API_BASE_URL!);
+```
+
+Add the `API_BASE_URL` environment variable to your `.env.local` file:
+```
+API_BASE_URL=https://workshop-stock-api.auth101.dev/api/
 ```
 
 Now we can import a pre-built tool from our toolkit, such as `GetStockPrice`, and create an instance suitable for Vercel AI SDK.
