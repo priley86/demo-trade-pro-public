@@ -1,53 +1,78 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Badge } from "@workspace/ui/components/badge"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { AlertCircle, DollarSign } from "lucide-react"
-import { Alert, AlertDescription } from "@workspace/ui/components/alert"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Badge } from "@workspace/ui/components/badge";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import { AlertCircle, DollarSign } from "lucide-react";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { API_BASE_URL } from "@/lib/config";
+import { auth0 } from "@/lib/auth0";
 
 interface Stock {
-  symbol: string
-  name: string
-  price: string
-  updatedAt: string
+  symbol: string;
+  name: string;
+  price: string;
+  updatedAt: string;
 }
 
 interface TradingModalProps {
-  isOpen: boolean
-  onClose: () => void
-  stock: Stock | null
-  stocks: Stock[]
-  onTradeComplete: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  stock: Stock | null;
+  stocks: Stock[];
+  onTradeComplete: () => void;
 }
 
-export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeComplete }: TradingModalProps) {
-  const [selectedSymbol, setSelectedSymbol] = useState(stock?.symbol || "")
-  const [side, setSide] = useState<"BUY" | "SELL">("BUY")
-  const [quantity, setQuantity] = useState("")
-  const [price, setPrice] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+export default function TradingModal({
+  isOpen,
+  onClose,
+  stock,
+  stocks,
+  onTradeComplete,
+}: TradingModalProps) {
+  const [selectedSymbol, setSelectedSymbol] = useState(stock?.symbol || "");
+  const [side, setSide] = useState<"BUY" | "SELL">("BUY");
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const selectedStock = stocks.find((s) => s.symbol === selectedSymbol)
+  const selectedStock = stocks.find((s) => s.symbol === selectedSymbol);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
+      // Verify user is authenticated
+      const token = await auth0.getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           symbol: selectedSymbol,
@@ -55,32 +80,35 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
           quantity: Number.parseInt(quantity),
           price: Number.parseFloat(price),
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to place order")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to place order");
       }
 
-      onTradeComplete()
-      onClose()
-      resetForm()
+      onTradeComplete();
+      onClose();
+      resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
-    setSelectedSymbol("")
-    setSide("BUY")
-    setQuantity("")
-    setPrice("")
-    setError("")
-  }
+    setSelectedSymbol("");
+    setSide("BUY");
+    setQuantity("");
+    setPrice("");
+    setError("");
+  };
 
-  const totalValue = quantity && price ? (Number.parseInt(quantity) * Number.parseFloat(price)).toFixed(2) : "0.00"
+  const totalValue =
+    quantity && price
+      ? (Number.parseInt(quantity) * Number.parseFloat(price)).toFixed(2)
+      : "0.00";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,7 +121,9 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
           {error && (
             <Alert className="border-red-600 bg-red-600/10">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-red-400">{error}</AlertDescription>
+              <AlertDescription className="text-red-400">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
@@ -111,7 +141,9 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
                     <SelectItem key={stock.symbol} value={stock.symbol}>
                       <div className="flex items-center justify-between w-full">
                         <span>{stock.symbol}</span>
-                        <span className="text-slate-400 ml-2">${stock.price}</span>
+                        <span className="text-slate-400 ml-2">
+                          ${stock.price}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}
@@ -128,7 +160,9 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
                       <p className="text-sm text-slate-400">Current Price</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold">${selectedStock.price}</p>
+                      <p className="text-lg font-bold">
+                        ${selectedStock.price}
+                      </p>
                       <Badge className="bg-green-600">Live</Badge>
                     </div>
                   </div>
@@ -140,7 +174,10 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
               <Label htmlFor="side" className="text-slate-300">
                 Order Type
               </Label>
-              <Select value={side} onValueChange={(value: "BUY" | "SELL") => setSide(value)}>
+              <Select
+                value={side}
+                onValueChange={(value: "BUY" | "SELL") => setSide(value)}
+              >
                 <SelectTrigger className="bg-slate-800 border-slate-700">
                   <SelectValue />
                 </SelectTrigger>
@@ -225,5 +262,5 @@ export default function TradingModal({ isOpen, onClose, stock, stocks, onTradeCo
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

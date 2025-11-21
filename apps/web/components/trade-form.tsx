@@ -1,59 +1,77 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Alert, AlertDescription } from "@workspace/ui/components/alert"
-import { AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { AlertCircle } from "lucide-react";
+import { API_BASE_URL } from "@/lib/config";
+import { auth0 } from "@/lib/auth0";
 
 interface Stock {
-  symbol: string
-  name: string
-  price: string
-  updatedAt: string
+  symbol: string;
+  name: string;
+  price: string;
+  updatedAt: string;
 }
 
 interface TradeFormProps {
-  stocks: Stock[]
-  selectedStock: string
-  onTradeComplete: () => void
+  stocks: Stock[];
+  selectedStock: string;
+  onTradeComplete: () => void;
 }
 
-export default function TradeForm({ stocks, selectedStock, onTradeComplete }: TradeFormProps) {
-  const [symbol, setSymbol] = useState(selectedStock)
-  const [side, setSide] = useState<"BUY" | "SELL">("BUY")
-  const [quantity, setQuantity] = useState("")
-  const [price, setPrice] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+export default function TradeForm({
+  stocks,
+  selectedStock,
+  onTradeComplete,
+}: TradeFormProps) {
+  const [symbol, setSymbol] = useState(selectedStock);
+  const [side, setSide] = useState<"BUY" | "SELL">("BUY");
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Update symbol when selectedStock changes
   useState(() => {
     if (selectedStock) {
-      setSymbol(selectedStock)
-      const stock = stocks.find((s) => s.symbol === selectedStock)
+      setSymbol(selectedStock);
+      const stock = stocks.find((s) => s.symbol === selectedStock);
       if (stock) {
-        setPrice(stock.price)
+        setPrice(stock.price);
       }
     }
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    setSuccess("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/orders", {
+      // Verify user is authenticated
+      const token = await auth0.getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      const response = await fetch(`${API_BASE_URL}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           symbol,
@@ -61,26 +79,29 @@ export default function TradeForm({ stocks, selectedStock, onTradeComplete }: Tr
           quantity: Number.parseInt(quantity),
           price: Number.parseFloat(price),
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to place order")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to place order");
       }
 
-      const order = await response.json()
-      setSuccess(`Order placed successfully! ID: ${order.id}`)
-      setQuantity("")
-      onTradeComplete()
+      const order = await response.json();
+      setSuccess(`Order placed successfully! ID: ${order.id}`);
+      setQuantity("");
+      onTradeComplete();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const selectedStockData = stocks.find((s) => s.symbol === symbol)
-  const totalValue = quantity && price ? (Number.parseInt(quantity) * Number.parseFloat(price)).toFixed(2) : "0.00"
+  const selectedStockData = stocks.find((s) => s.symbol === symbol);
+  const totalValue =
+    quantity && price
+      ? (Number.parseInt(quantity) * Number.parseFloat(price)).toFixed(2)
+      : "0.00";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +136,10 @@ export default function TradeForm({ stocks, selectedStock, onTradeComplete }: Tr
 
       <div className="space-y-2">
         <Label htmlFor="side">Side</Label>
-        <Select value={side} onValueChange={(value: "BUY" | "SELL") => setSide(value)}>
+        <Select
+          value={side}
+          onValueChange={(value: "BUY" | "SELL") => setSide(value)}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -168,9 +192,13 @@ export default function TradeForm({ stocks, selectedStock, onTradeComplete }: Tr
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading || !symbol || !quantity || !price}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={loading || !symbol || !quantity || !price}
+      >
         {loading ? "Placing Order..." : `${side} ${symbol || "Stock"}`}
       </Button>
     </form>
-  )
+  );
 }

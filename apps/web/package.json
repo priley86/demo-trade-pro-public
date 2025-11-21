@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.9.0",
+    "@auth0/nextjs-auth0": "^4.13.1",
     "@workspace/ui": "workspace:*",
     "auth0": "^4.27.0",
     "lucide-react": "^0.475.0",

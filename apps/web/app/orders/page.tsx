@@ -1,86 +1,110 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Input } from "@workspace/ui/components/input"
-import { Search } from "lucide-react"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { getAccessToken } from "@auth0/nextjs-auth0/client";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Input } from "@workspace/ui/components/input";
+import { Search } from "lucide-react";
+import { API_BASE_URL } from "@/lib/config";
+import { auth0 } from "@/lib/auth0";
 
 interface Order {
-  id: string
-  symbol: string
-  side: "BUY" | "SELL"
-  quantity: number
-  price: string
-  status: "PENDING" | "FILLED" | "REJECTED"
-  createdAt: string
-  updatedAt: string
+  id: string;
+  symbol: string;
+  side: "BUY" | "SELL";
+  quantity: number;
+  price: string;
+  status: "PENDING" | "FILLED" | "REJECTED";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
-  const [statusFilter, setStatusFilter] = useState("ALL")
-  const [symbolFilter, setSymbolFilter] = useState("ALL")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [symbolFilter, setSymbolFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/orders", {
-        headers: { Authorization: "Bearer mock-token" },
-      })
+      // Verify user is authenticated
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      const response = await fetch(`${API_BASE_URL}/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (response.ok) {
-        const data = await response.json()
-        setOrders(data)
-        setFilteredOrders(data)
+        const data = await response.json();
+        setOrders(data);
+        setFilteredOrders(data);
       }
     } catch (error) {
-      console.error("Failed to fetch orders:", error)
+      console.error("Failed to fetch orders:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchOrders()
-    const interval = setInterval(fetchOrders, 5000) // Refresh every 5 seconds
-    return () => clearInterval(interval)
-  }, [])
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    let filtered = orders
+    let filtered = orders;
 
     if (statusFilter !== "ALL") {
-      filtered = filtered.filter((order) => order.status === statusFilter)
+      filtered = filtered.filter((order) => order.status === statusFilter);
     }
 
     if (symbolFilter !== "ALL") {
-      filtered = filtered.filter((order) => order.symbol === symbolFilter)
+      filtered = filtered.filter((order) => order.symbol === symbolFilter);
     }
 
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
           order.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.id.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          order.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    setFilteredOrders(filtered)
-  }, [orders, statusFilter, symbolFilter, searchTerm])
+    setFilteredOrders(filtered);
+  }, [orders, statusFilter, symbolFilter, searchTerm]);
 
-  const uniqueSymbols = Array.from(new Set(orders.map((order) => order.symbol)))
-  const totalValue = filteredOrders.reduce((sum, order) => sum + Number.parseFloat(order.price) * order.quantity, 0)
+  const uniqueSymbols = Array.from(
+    new Set(orders.map((order) => order.symbol))
+  );
+  const totalValue = filteredOrders.reduce(
+    (sum, order) => sum + Number.parseFloat(order.price) * order.quantity,
+    0
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-muted-foreground">Loading orders...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -136,9 +160,9 @@ export default function OrdersPage() {
             <Button
               variant="outline"
               onClick={() => {
-                setStatusFilter("ALL")
-                setSymbolFilter("ALL")
-                setSearchTerm("")
+                setStatusFilter("ALL");
+                setSymbolFilter("ALL");
+                setSearchTerm("");
               }}
             >
               Clear Filters
@@ -157,13 +181,17 @@ export default function OrdersPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              ${totalValue.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Total Value</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{filteredOrders.filter((o) => o.status === "FILLED").length}</div>
+            <div className="text-2xl font-bold">
+              {filteredOrders.filter((o) => o.status === "FILLED").length}
+            </div>
             <p className="text-xs text-muted-foreground">Filled Orders</p>
           </CardContent>
         </Card>
@@ -178,7 +206,9 @@ export default function OrdersPage() {
           {filteredOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p>No orders found</p>
-              <p className="text-sm">Try adjusting your filters or place your first trade</p>
+              <p className="text-sm">
+                Try adjusting your filters or place your first trade
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -186,7 +216,13 @@ export default function OrdersPage() {
                 <div key={order.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <Badge variant={order.side === "BUY" ? "default" : "destructive"}>{order.side}</Badge>
+                      <Badge
+                        variant={
+                          order.side === "BUY" ? "default" : "destructive"
+                        }
+                      >
+                        {order.side}
+                      </Badge>
                       <div className="font-medium text-lg">{order.symbol}</div>
                       <Badge
                         variant={
@@ -202,7 +238,10 @@ export default function OrdersPage() {
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-lg">
-                        ${(Number.parseFloat(order.price) * order.quantity).toFixed(2)}
+                        $
+                        {(
+                          Number.parseFloat(order.price) * order.quantity
+                        ).toFixed(2)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString()}
@@ -221,11 +260,15 @@ export default function OrdersPage() {
                     </div>
                     <div>
                       <div className="text-muted-foreground">Order ID</div>
-                      <div className="font-mono text-xs">{order.id.slice(0, 8)}...</div>
+                      <div className="font-mono text-xs">
+                        {order.id.slice(0, 8)}...
+                      </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Time</div>
-                      <div className="font-medium">{new Date(order.createdAt).toLocaleTimeString()}</div>
+                      <div className="font-medium">
+                        {new Date(order.createdAt).toLocaleTimeString()}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -235,5 +278,5 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
