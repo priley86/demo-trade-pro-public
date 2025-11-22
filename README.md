@@ -38,3 +38,9 @@ cd demo-trade-pro
 ---
 
 **Workshop Focus:** Security-first AI agent development with real-world authentication patterns.
+
+## Adding in Claude Code
+
+```
+claude mcp add --transport http demo-trade-pro https://demo-trade-pro-agent.vercel.app/mcp -H "Authorization: Bearer {token}"
+```
