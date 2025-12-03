@@ -16,7 +16,7 @@
     "@modelcontextprotocol/sdk": "^1.22.0",
     "@workspace/agent-utils": "workspace:*",
     "@workspace/ui": "workspace:*",
-    "ai": "^5.0.0",
+    "ai": "5.0.0",
     "jose": "^6.1.2",
     "lucide-react": "^0.475.0",
     "mcp-handler": "^1.0.4",
