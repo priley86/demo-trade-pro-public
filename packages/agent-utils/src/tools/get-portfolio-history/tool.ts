@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { tool } from "ai";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import type { DemoTradeProAPIClient } from "../../utils/api-client";
 import type { PortfolioHistory } from "../../types/api.js";
 
@@ -68,7 +67,8 @@ export function getMCPToolMeta() {
     name: "getPortfolioHistory",
     description:
       "Get historical portfolio performance data over time - DemoTradePro",
-    inputSchema: zodToJsonSchema(GetPortfolioHistorySchema),
+    inputSchema: GetPortfolioHistorySchema.shape,
+    requiredScopes: ["trade:write"],
   };
 }
 

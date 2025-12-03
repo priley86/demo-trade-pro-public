@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { tool } from "ai";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { DemoTradeProAPIClient } from "../../utils/api-client";
 import type { Order } from "../../types/api";
 
@@ -51,7 +50,8 @@ export function getMCPToolMeta() {
   return {
     name: "getOrderStatus",
     description: "Check the status of a specific trading order - DemoTradePro",
-    inputSchema: zodToJsonSchema(GetOrderStatusSchema),
+    inputSchema: GetOrderStatusSchema.shape,
+    requiredScopes: ["trade:read"],
   };
 }
 

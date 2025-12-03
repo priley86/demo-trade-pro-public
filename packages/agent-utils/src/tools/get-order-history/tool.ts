@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { tool } from "ai";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import type { DemoTradeProAPIClient } from "../../utils/api-client";
 import type { Order } from "../../types/api";
 
@@ -70,7 +69,8 @@ export function getMCPToolMeta() {
   return {
     name: "getOrderHistory",
     description: "Retrieve user trading history and past orders - DemoTradePro",
-    inputSchema: zodToJsonSchema(GetOrderHistorySchema),
+    inputSchema: GetOrderHistorySchema.shape,
+    requiredScopes: ["trade:read"],
   };
 }
 
