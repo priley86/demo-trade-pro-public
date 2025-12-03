@@ -6,7 +6,7 @@ Learn how to build AI agents that securely interact with APIs using proper authe
 
 ## 🚀 Get Started
 
-**Workshop Documentation:** [workshop.auth101.dev](https://workshop.auth101.dev)
+**Workshop Documentation:** [https://demo-trade-pro-docs.vercel.app/](https://demo-trade-pro-docs.vercel.app/)
 
 Complete step-by-step guide including:
 
@@ -29,10 +29,10 @@ Complete step-by-step guide including:
 
 ```bash
 git clone https://github.com/priley86/demo-trade-pro-public.git
-cd demo-trade-pro
+cd demo-trade-pro-public
 
 # Follow the complete guide at:
-# https://workshop.auth101.dev
+# https://demo-trade-pro-docs.vercel.app/
 ```
 
 ---
