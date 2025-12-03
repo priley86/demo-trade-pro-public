@@ -28,7 +28,7 @@ Complete step-by-step guide including:
 ## ⚡ Quick Start
 
 ```bash
-git clone https://github.com/ciamshrek/demo-trade-pro.git
+git clone https://github.com/priley86/demo-trade-pro-public.git
 cd demo-trade-pro
 
 # Follow the complete guide at:
