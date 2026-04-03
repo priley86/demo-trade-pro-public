@@ -17,13 +17,13 @@ export const MCP_SERVER_CUSTOM_API_CLIENT_SECRET =
 if (!isBuildTime) {
   if (!MCP_SERVER_CUSTOM_API_CLIENT_ID) {
     throw new Error(
-      "MCP_SERVER_CUSTOM_API_CLIENT_ID is required for MCP server to access OIDC connection."
+      "MCP_SERVER_CUSTOM_API_CLIENT_ID is required for MCP server to access OIDC connection.",
     );
   }
 
   if (!MCP_SERVER_CUSTOM_API_CLIENT_SECRET) {
     throw new Error(
-      "MCP_SERVER_CUSTOM_API_CLIENT_SECRET is required for MCP server to access OIDC connection."
+      "MCP_SERVER_CUSTOM_API_CLIENT_SECRET is required for MCP server to access OIDC connection.",
     );
   }
 }
@@ -35,4 +35,5 @@ if (!isBuildTime) {
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*", // Adjust as needed for production
   "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Content-Type": "application/json",
 };
